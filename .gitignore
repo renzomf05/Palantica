@@ -1,12 +1,3 @@
-# Environment & Secrets
-.env
-.env.*
-!.env.example
-*.user
-secrets.json
-supakeys.md
-*keys*.md
-
 # AI Assistants, Agents & Harnesses
 .agent/
 .agents/
