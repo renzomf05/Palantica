@@ -1,0 +1,346 @@
+{
+  "info": {
+    "_postman_id": "7f8b9e12-45a1-4321-b01a-palantica2026",
+    "name": "Palantica API - Colección Oficial (Algoritmos III - Hilet)",
+    "description": "Colección completa de endpoints para Palantica: 'El Fragrantica de las Palas de Pádel'. Incluye autenticación JWT, catálogo filtrado, cálculo de similitud vectorial (Algoritmos III), reglas multientidad para reseñas y votos, paletero y feed comunitario Padelgram.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5007",
+      "type": "string"
+    },
+    {
+      "key": "jwtToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Autenticación",
+      "item": [
+        {
+          "name": "Registro de Usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jugador@hilet.edu.ar\",\n  \"password\": \"Palantica2026!\",\n  \"nombre\": \"Martin Di Nenno\",\n  \"nivelJuego\": \"Competicion\",\n  \"ladoPistaPreferido\": \"Drive\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/registro",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "registro"]
+            }
+          }
+        },
+        {
+          "name": "Login y Obtención de JWT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "    pm.collectionVariables.set('jwtToken', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jugador@hilet.edu.ar\",\n  \"password\": \"Palantica2026!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Perfil Actual (Requiere JWT)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/perfil",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "perfil"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Marcas (Fabricantes)",
+      "item": [
+        {
+          "name": "Listar Todas las Marcas",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/marcas",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "marcas"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Marca por ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/marcas/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "marcas", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Catálogo de Palas",
+      "item": [
+        {
+          "name": "Listar Palas (Paginadas y Filtradas)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/palas?page=1&pageSize=10&forma=Diamante&durezaMin=6",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "palas"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" },
+                { "key": "forma", "value": "Diamante" },
+                { "key": "durezaMin", "value": "6" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ficha Sagrada de la Pala (Detalle + Gemelas)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/palas/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "palas", "1"]
+            }
+          }
+        },
+        {
+          "name": "Calcular Palas Similares (Algoritmos III)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/palas/1/similares?limit=4",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "palas", "1", "similares"],
+              "query": [
+                { "key": "limit", "value": "4" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Reseñas (Regla Multientidad)",
+      "item": [
+        {
+          "name": "Listar Reseñas de una Pala",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/palas/1/resenas?page=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "palas", "1", "resenas"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Publicar Reseña Técnica (Actualiza Pala atómicamente)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"puntuacion\": 5,\n  \"titulo\": \"Precisión quirúrgica en chiquita y volea\",\n  \"contenido\": \"Pala de balance perfecto que no cabecea y ofrece una salida de bola noble en defensa.\",\n  \"ladoPista\": \"Drive\",\n  \"tiempoUso\": \"2 meses\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/palas/1/resenas",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "palas", "1", "resenas"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Votaciones de Atributos y Dureza (Regla Multientidad)",
+      "item": [
+        {
+          "name": "Obtener Resumen de Votaciones de Atributos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/palas/1/votos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "palas", "1", "votos"]
+            }
+          }
+        },
+        {
+          "name": "Emitir Voto de Dureza y Atributos (Actualiza Pala atómicamente)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"durezaPercibida\": 7,\n  \"potencia\": 9,\n  \"control\": 9,\n  \"salidaBola\": 8,\n  \"maniobrabilidad\": 9,\n  \"puntoDulce\": 9,\n  \"confort\": 8,\n  \"estacionRecomendada\": \"TodoAno\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/palas/1/votos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "palas", "1", "votos"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Mi Paletero (Colección de Usuario)",
+      "item": [
+        {
+          "name": "Consultar Mi Paletero Clasificado",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/paletero/mi-paletero",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "paletero", "mi-paletero"]
+            }
+          }
+        },
+        {
+          "name": "Agregar Pala a Categoría del Paletero",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"palaId\": 1,\n  \"categoria\": \"Usando actualmente\",\n  \"notas\": \"Pala de torneo con protector transparente\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/paletero/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "paletero", "items"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Padelgram (Comunidad)",
+      "item": [
+        {
+          "name": "Obtener Feed Fotográfico Padelgram",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/padelgram?page=1&pageSize=12",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "padelgram"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "12" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Publicar Fotografía en Pista",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"palaId\": 1,\n  \"imagenUrl\": \"https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800\",\n  \"descripcion\": \"Probando la AT10 en el torneo de fin de semana.\",\n  \"ubicacion\": \"Club Los Naranjos, Mar del Plata\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/padelgram",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "padelgram"]
+            }
+          }
+        },
+        {
+          "name": "Dar Like a una Publicación",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/padelgram/1/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "padelgram", "1", "like"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Sistema y Diagnóstico",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

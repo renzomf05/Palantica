@@ -1,0 +1,39 @@
+services:
+  palantica-db:
+    image: postgres:16-alpine
+    container_name: palantica-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: palantica
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ***REMOVED***
+    ports:
+      - "5433:5432"
+    volumes:
+      - palantica_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  palantica-api:
+    build:
+      context: ./backend/Palantica.Api
+      dockerfile: Dockerfile
+    container_name: palantica-api
+    restart: always
+    depends_on:
+      palantica-db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Supabase=Host=palantica-db;Port=5432;Database=palantica;Username=postgres;Password=***REMOVED***;
+      - Jwt__Key=***REMOVED***
+      - Jwt__Issuer=Palantica.Api
+      - Jwt__Audience=Palantica.Client
+    ports:
+      - "5007:5007"
+
+volumes:
+  palantica_data:
