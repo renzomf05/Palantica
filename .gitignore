@@ -1,0 +1,42 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+*.user
+secrets.json
+supakeys.md
+*keys*.md
+
+# AI Assistants, Agents & Harnesses
+.agent/
+.agents/
+.gemini/
+.claude/
+.cursor/
+.opencode/
+.windsurf/
+.copilot/
+skills-lock.json
+AGENTS.md
+GEMINI.md
+CLAUDE.md
+*.ai
+
+# .NET & Visual Studio
+bin/
+obj/
+*.suo
+*.useros
+.vs/
+.vscode/
+
+# Node & Frontend
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+
+# Operating System
+Thumbs.db
+[Dd]esktop.ini
+.DS_Store
