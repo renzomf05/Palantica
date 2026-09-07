@@ -17,9 +17,8 @@ Palantica es una plataforma comunitaria y analítica diseñada para jugadores qu
 - **Comunidad y Reseñas Reales**:
   - Reviews verificadas de jugadores con filtros por estilo de juego y nivel.
   - Indicador de precio promedio orientativo de mercado (sin ventas directas ni e-commerce).
-- **Visor 3D y Gráficos Interactivos**:
-  - Inspección 3D 360° de la pala (forma, balance y textura).
-  - Diagrama dinámico del mapa de perforaciones y punto dulce.
+- **Gráficos Interactivos**:
+  - Diagrama dinámico de punto dulce.
 - **Panel de Administración**:
   - Gestión masiva del catálogo de palas, moderación de reviews e integración con APIs/fuentes públicas de pádel.
 
@@ -29,6 +28,6 @@ Palantica es una plataforma comunitaria y analítica diseñada para jugadores qu
 
 - **Backend**: C# (.NET 10 / ASP.NET Core Web API) + Entity Framework Core.
 - **Frontend**: React 19 + TypeScript + Vite.
-- **3D & Animaciones**: Three.js (`@react-three/fiber`), `motion.dev`, `animejs`.
-- **Estética**: Neumorfismo deportivo, soporte Nativo Claro / Oscuro, acentos Verde Lima Tenis (`#D4FF00`) y Rosa Fluo (`#FF007F`), patrones Kokonut UI y BkLit UI.
+- **Animaciones**: `motion.dev`, `animejs`.
+- **Estética**: Skeuomorfismo deportivo, soporte Nativo Claro / Oscuro, acentos Verde Lima Tenis (`#D4FF00`) y Rosa Fluo (`#FF007F`), patrones Kokonut UI y BkLit UI.
 - **Directivas**: Anti-Vibecoding estricto y filosofía Fail-Fast.

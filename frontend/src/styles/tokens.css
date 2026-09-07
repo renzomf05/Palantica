@@ -1,0 +1,103 @@
+:root {
+  /* ==========================================================
+     PALANTICA DESIGN SYSTEM: SOBER, ELEGANT SKEUOMORPHISM
+     Midnight Slate, Titanium Steel, Refined Sage, Warm Crema
+     ========================================================== */
+
+  /* Colores de Acento Sobrios */
+  --color-primary-sage: #52B788;
+  --color-primary-sage-glow: rgba(82, 183, 136, 0.25);
+  --color-primary-sage-dim: #2D6A4F;
+
+  --color-accent-steel: #3B82F6;
+  --color-accent-steel-glow: rgba(59, 130, 246, 0.25);
+  --color-accent-steel-dim: #1D4ED8;
+
+  --color-accent-amber: #F59E0B;
+  --color-accent-amber-glow: rgba(245, 158, 11, 0.25);
+
+  --color-accent-terracotta: #E07A5F;
+
+  /* Superficies y Fondos en Modo Oscuro (Midnight Slate) */
+  --bg-deep: #0B0F17;
+  --bg-surface: #111726;
+  --bg-card: #161F32;
+  --bg-card-hover: #1D2A42;
+  --bg-card-elevated: #22324E;
+  --bg-glass: rgba(17, 23, 38, 0.85);
+  --bg-glass-card: rgba(22, 31, 50, 0.75);
+  --bg-input: #0E1420;
+
+  /* Bordes y Biseles Skeuomórficos */
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-card: rgba(255, 255, 255, 0.10);
+  --border-card-hover: rgba(82, 183, 136, 0.40);
+  --border-steel-highlight: rgba(59, 130, 246, 0.35);
+  --border-bevel-light: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --border-bevel-dark: inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+
+  /* Sombras y Volumen Físico */
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-card-elevated: 0 12px 36px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --shadow-btn-primary: 0 4px 14px rgba(82, 183, 136, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 0 #1E4634;
+  --shadow-btn-secondary: 0 3px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(0, 0, 0, 0.5);
+  --shadow-btn-pressed: 0 1px 3px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(0, 0, 0, 0.3);
+
+  /* Tipografía y Textos */
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-inverse: #0B0F17;
+
+  /* Radios y Espaciados */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-full: 9999px;
+
+  --nav-height: 64px;
+  --header-height: 68px;
+}
+
+/* ==========================================================
+   MODO CLARO: Off-White & Crema Cálido Elegante
+   ========================================================== */
+[data-theme="light"] {
+  --color-primary-sage: #2D6A4F;
+  --color-primary-sage-glow: rgba(45, 106, 79, 0.15);
+  --color-primary-sage-dim: #1B4332;
+
+  --color-accent-steel: #2563EB;
+  --color-accent-steel-glow: rgba(37, 99, 235, 0.15);
+  --color-accent-steel-dim: #1D4ED8;
+
+  --color-accent-amber: #D97706;
+  --color-accent-amber-glow: rgba(217, 119, 6, 0.15);
+
+  --bg-deep: #F8F6F0;
+  --bg-surface: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F2EFE8;
+  --bg-card-elevated: #FFFFFF;
+  --bg-glass: rgba(248, 246, 240, 0.90);
+  --bg-glass-card: rgba(255, 255, 255, 0.90);
+  --bg-input: #EFECE4;
+
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-card: rgba(0, 0, 0, 0.09);
+  --border-card-hover: rgba(45, 106, 79, 0.40);
+  --border-steel-highlight: rgba(37, 99, 235, 0.30);
+  --border-bevel-light: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --border-bevel-dark: inset 0 -1px 0 rgba(0, 0, 0, 0.06);
+
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --shadow-card-elevated: 0 10px 28px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --shadow-btn-primary: 0 3px 12px rgba(45, 106, 79, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 0 #1B4332;
+  --shadow-btn-secondary: 0 2px 8px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 0 #D5D0C6;
+  --shadow-btn-pressed: 0 1px 2px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.08);
+
+  --text-primary: #1E293B;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+  --text-inverse: #FFFFFF;
+}
