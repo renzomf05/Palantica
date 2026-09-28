@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700&display=swap');
+@import "tailwindcss";
 @import './tokens.css';
 
 *, *::before, *::after {
@@ -380,3 +380,184 @@ button {
   animation: shimmer 1.6s infinite;
   border-radius: var(--radius-sm);
 }
+
+/* ==========================================================
+   PALANTICA EDITORIAL EXTENSIONS (HOME LOOKBOOK FULL-BLEED)
+   ========================================================== */
+
+.editorial-app-container {
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  overflow-x: hidden;
+}
+
+.editorial-main-content {
+  padding: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+.font-editorial {
+  font-family: var(--font-editorial);
+}
+
+.headline-giant {
+  font-family: var(--font-editorial);
+  font-size: clamp(3.2rem, 8vw, 10.5rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.87;
+  text-transform: lowercase;
+}
+
+.headline-large {
+  font-family: var(--font-editorial);
+  font-size: clamp(2.2rem, 5.5vw, 6.5rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.89;
+  text-transform: lowercase;
+}
+
+.headline-medium {
+  font-family: var(--font-editorial);
+  font-size: clamp(1.5rem, 3.2vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 0.92;
+  text-transform: lowercase;
+}
+
+.headline-card {
+  font-family: var(--font-editorial);
+  font-size: clamp(1.2rem, 1.8vw, 1.7rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 0.94;
+  text-transform: lowercase;
+}
+
+.editorial-meta {
+  font-family: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.editorial-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--editorial-pill-bg);
+  color: var(--editorial-pill-fg);
+  border-radius: 9999px;
+  padding: 11px 26px;
+  font-family: var(--font-editorial);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: lowercase;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, color 0.2s ease;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.editorial-pill-btn:hover {
+  transform: scale(1.04);
+  background: var(--editorial-accent);
+  color: #FFFFFF;
+}
+
+.editorial-pill-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--editorial-fg);
+  border: 1px solid var(--editorial-border-strong);
+  border-radius: 9999px;
+  padding: 9px 22px;
+  font-family: var(--font-editorial);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: lowercase;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.editorial-pill-outline:hover {
+  background: var(--editorial-fg);
+  color: var(--editorial-bg);
+  border-color: var(--editorial-fg);
+}
+
+/* Continuous Marquee Ticker */
+@keyframes editorialTicker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.editorial-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: editorialTicker 32s linear infinite;
+}
+
+.editorial-ticker-container:hover .editorial-ticker-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editorial-ticker-track {
+    animation: none;
+    overflow-x: auto;
+  }
+  .editorial-img-zoom {
+    transition: none !important;
+  }
+}
+
+/* Horizontal Snap Carousel */
+.editorial-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  gap: 24px;
+}
+
+.editorial-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.editorial-carousel-item {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* Image Subtle Zoom on Card Hover */
+.editorial-card-group .editorial-img-zoom {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.editorial-card-group:hover .editorial-img-zoom {
+  transform: scale(1.03);
+}
+
+.editorial-card-group:hover .editorial-headline-hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+}
+

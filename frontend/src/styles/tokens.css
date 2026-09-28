@@ -138,3 +138,74 @@
   --text-muted: #7E8C9F;            /* Tinta atenuada */
   --text-inverse: #FAF8F5;
 }
+
+/* ==========================================================
+   PALANTICA EDITORIAL DESIGN SYSTEM (REVISTA LOOKBOOK / SWISS)
+   Exclusivo para la portada "Inicio", neutral base + naranja #F04E37
+   ========================================================== */
+:root {
+  --font-editorial: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --editorial-accent: #F04E37;
+  --editorial-accent-glow: rgba(240, 78, 55, 0.28);
+
+  /* Gama Suiza Oficial (Neue Haas Grotesk Poster Reference) */
+  --swiss-petrol: #0F3B3A;
+  --swiss-cream: #E8E6D9;
+  --swiss-orange: #F04E37;
+  --swiss-orange-glow: rgba(240, 78, 55, 0.35);
+}
+
+[data-theme="dark"] {
+  --editorial-bg: #0A0A0A;
+  --editorial-fg: #FFFFFF;
+  --editorial-surface: #141414;
+  --editorial-card: #181818;
+  --editorial-border: rgba(255, 255, 255, 0.12);
+  --editorial-border-strong: rgba(255, 255, 255, 0.28);
+  --editorial-muted: rgba(255, 255, 255, 0.65);
+  --editorial-dim: rgba(255, 255, 255, 0.40);
+  --editorial-pill-bg: #FFFFFF;
+  --editorial-pill-fg: #0A0A0A;
+  --editorial-overlay: rgba(10, 10, 10, 0.35);
+
+  /* Paleta para Informes Especiales y Manifiestos (Afiche Verde Petróleo) */
+  --special-bg: #0F3B3A;
+  --special-fg: #E8E6D9;
+  --special-accent: #F04E37;
+  --special-surface: #144948;
+  --special-border: rgba(232, 230, 217, 0.22);
+  --special-border-strong: rgba(232, 230, 217, 0.45);
+  --special-muted: rgba(232, 230, 217, 0.75);
+  --special-dim: rgba(232, 230, 217, 0.45);
+  --special-pill-bg: #E8E6D9;
+  --special-pill-fg: #0F3B3A;
+  --special-specimen-bg: #0A2827;
+}
+
+[data-theme="light"] {
+  --editorial-bg: #F2F1EE;
+  --editorial-fg: #0A0A0A;
+  --editorial-surface: #E8E6E0;
+  --editorial-card: #DEDCD5;
+  --editorial-border: rgba(10, 10, 10, 0.12);
+  --editorial-border-strong: rgba(10, 10, 10, 0.28);
+  --editorial-muted: rgba(10, 10, 10, 0.65);
+  --editorial-dim: rgba(10, 10, 10, 0.40);
+  --editorial-pill-bg: #0A0A0A;
+  --editorial-pill-fg: #FFFFFF;
+  --editorial-overlay: rgba(242, 241, 238, 0.35);
+
+  /* Paleta para Informes Especiales y Manifiestos (Afiche Crema Suizo) */
+  --special-bg: #E8E6D9;
+  --special-fg: #0F3B3A;
+  --special-accent: #F04E37;
+  --special-surface: #DDD9C9;
+  --special-border: rgba(15, 59, 58, 0.22);
+  --special-border-strong: rgba(15, 59, 58, 0.45);
+  --special-muted: rgba(15, 59, 58, 0.75);
+  --special-dim: rgba(15, 59, 58, 0.45);
+  --special-pill-bg: #0F3B3A;
+  --special-pill-fg: #E8E6D9;
+  --special-specimen-bg: #0F3B3A;
+}
+

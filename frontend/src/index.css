@@ -1,4 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-swiss-bg: var(--swiss-bg);
+  --color-swiss-text: var(--swiss-text);
+  --color-swiss-accent: var(--swiss-accent);
+  --color-swiss-border: var(--swiss-border);
+  --font-swiss: var(--font-swiss);
+}
+
 :root {
+  --swiss-cream: #E8E6D9;
+  --swiss-darkgreen: #0F3B3A;
+  --swiss-accent-color: #F04E37;
+
+  --swiss-bg: var(--swiss-cream);
+  --swiss-text: var(--swiss-darkgreen);
+  --swiss-accent: var(--swiss-accent-color);
+  --swiss-border: var(--swiss-darkgreen);
+  --font-swiss: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
   --text: #6b6375;
   --text-h: #08060d;
   --bg: #fff;
@@ -32,6 +52,10 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    --swiss-bg: var(--swiss-darkgreen);
+    --swiss-text: var(--swiss-cream);
+    --swiss-border: var(--swiss-cream);
+
     --text: #9ca3af;
     --text-h: #f3f4f6;
     --bg: #16171d;
