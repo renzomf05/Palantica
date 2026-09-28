@@ -6,13 +6,15 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 interface NewsCarouselProps {
   title?: string;
   subtitle?: string;
-  articles: NewsItem[];
+  articles?: NewsItem[];
+  isReserved?: boolean;
 }
 
 export const NewsCarousel: React.FC<NewsCarouselProps> = ({
   title = 'últimas noticias.',
-  subtitle = 'edición continuada · actualización de pista',
-  articles,
+  subtitle = 'edición en preparación · espacios reservados',
+  articles = [],
+  isReserved = true,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -28,15 +30,14 @@ export const NewsCarousel: React.FC<NewsCarouselProps> = ({
       {/* Cabecera del carrusel con estética de colección de tienda */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="flex flex-col gap-2">
-          <span className="editorial-meta text-[11px] text-[#F04E37] tracking-[0.2em]">
-            [ LOOKBOOK / NOTICIAS RECIENTES ]
-          </span>
           <h2 className="headline-large tracking-[-0.05em] leading-[0.89] lowercase">
             {title}
           </h2>
-          <span className="text-xs text-[var(--editorial-muted)] font-editorial">
-            {subtitle}
-          </span>
+          {subtitle && (
+            <span className="text-xs text-[var(--editorial-muted)] font-editorial">
+              {subtitle}
+            </span>
+          )}
         </div>
 
         {/* Controles de navegación táctiles y flechas */}
@@ -61,23 +62,55 @@ export const NewsCarousel: React.FC<NewsCarouselProps> = ({
         </div>
       </div>
 
-      {/* Riel deslizable con scroll-snap táctil */}
-      <div
-        ref={scrollContainerRef}
-        className="editorial-carousel w-full pb-4"
-        tabIndex={0}
-        role="region"
-        aria-label="Carrusel de últimas noticias"
-      >
-        {articles.map((article) => (
-          <div
-            key={article.id}
-            className="editorial-carousel-item w-[280px] sm:w-[320px] md:w-[360px]"
-          >
-            <NewsCard article={article} />
-          </div>
-        ))}
-      </div>
+      {/* Si está en reserva, renderizamos la grilla de cajas estructurales suizas */}
+      {isReserved ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full">
+          {[1, 2, 3, 4].map((slot) => (
+            <div
+              key={slot}
+              className="aspect-[4/5] border border-dashed border-[var(--editorial-border)] p-6 flex flex-col justify-between bg-[var(--editorial-surface)]/20 relative group hover:border-[#F04E37]/50 transition-colors"
+            >
+              <div className="flex justify-between items-start text-[var(--editorial-dim)] font-mono text-[9px]">
+                <span>+ REG.0{slot}</span>
+                <span>SLOT.EMPTY</span>
+              </div>
+              <div className="flex flex-col items-center justify-center gap-2 text-center py-8">
+                <span className="w-6 h-6 border border-[var(--editorial-border)] flex items-center justify-center text-[var(--editorial-dim)] font-mono text-[10px]">
+                  +
+                </span>
+                <span className="editorial-meta text-[10px] text-[var(--editorial-muted)] tracking-[0.2em]">
+                  [ ESPACIO RESERVADO ]
+                </span>
+                <span className="text-[11px] text-[var(--editorial-dim)] font-editorial">
+                  crónica de pista pendiente
+                </span>
+              </div>
+              <div className="flex justify-between items-end border-t border-[var(--editorial-border)]/40 pt-3 text-[9px] font-mono text-[var(--editorial-dim)]">
+                <span>SPEC.0{slot}</span>
+                <span>PALANTICA // LAB</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Riel deslizable con scroll-snap táctil */
+        <div
+          ref={scrollContainerRef}
+          className="editorial-carousel w-full pb-4"
+          tabIndex={0}
+          role="region"
+          aria-label="Carrusel de últimas noticias"
+        >
+          {articles.map((article) => (
+            <div
+              key={article.id}
+              className="editorial-carousel-item w-[280px] sm:w-[320px] md:w-[360px]"
+            >
+              <NewsCard article={article} />
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 };

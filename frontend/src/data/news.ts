@@ -3,15 +3,17 @@ export interface NewsItem {
   titulo: string;
   bajada: string;
   categoria: string;
-  autor: string;
+  autor?: string;
   fecha: string;
-  tiempoLectura: number;
-  imagen: string; // URL o identificador de placeholder
-  fotoDescripcion: string;
+  tiempoLectura?: number;
+  imagen?: string | null; // URL o identificador de placeholder
+  fotoDescripcion?: string;
   destacada: boolean;
-  seccion: 'circuito' | 'torneos' | 'jugadores' | 'material' | 'entrevistas' | 'opinion';
+  seccion: 'circuito' | 'torneos' | 'jugadores' | 'material' | 'entrevistas' | 'opinion' | 'general' | string;
   ratio?: '16/9' | '4/3' | '9/16' | '1/1' | '21/9';
   destacadaSecundaria?: boolean;
+  link?: string;
+  fuente?: string;
 }
 
 export const mockNews: NewsItem[] = [

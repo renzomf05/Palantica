@@ -129,6 +129,9 @@ export const SiteFooter: React.FC = () => {
             enciclopedia técnica, sensorial y revista digital de pádel. diseñado bajo principios del estilo tipográfico internacional (swiss style). impreso en la web.
           </p>
           <span className="editorial-meta text-[10px] text-[var(--editorial-dim)]">
+            Noticias vía NewsData.io. Cada nota pertenece a su medio de origen.
+          </span>
+          <span className="editorial-meta text-[10px] text-[var(--editorial-dim)]">
             © 2026 PALANTICA INC. TODOS LOS DERECHOS RESERVADOS.
           </span>
         </div>

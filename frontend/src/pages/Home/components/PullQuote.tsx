@@ -46,9 +46,6 @@ export const PullQuote: React.FC<PullQuoteProps> = ({
       <div className="relative z-10 flex justify-between items-start w-full">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-3 bg-[#F04E37] inline-block" />
-          <span className="editorial-meta text-[11px] font-bold text-[#F04E37] tracking-[0.25em]">
-            | SWISS STYLE // MANIFIESTO |
-          </span>
         </div>
         <span
           className="editorial-meta text-[11px] font-bold tracking-widest"
@@ -60,11 +57,6 @@ export const PullQuote: React.FC<PullQuoteProps> = ({
 
       {/* 3. Centro / Asimetría: Cita gigante en tipografía suiza extrema */}
       <div className="relative z-10 my-auto py-12 max-w-5xl">
-        <div className="mb-4">
-          <span className="editorial-meta text-[10px] text-[#F04E37] tracking-[0.2em] uppercase font-bold">
-            Neue Haas Grotesk · Declaración de Pista
-          </span>
-        </div>
         <blockquote
           className="headline-large tracking-[-0.05em] leading-[0.88] lowercase text-balance font-extrabold"
           style={{ color: 'var(--special-fg)' }}

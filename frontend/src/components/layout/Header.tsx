@@ -86,13 +86,13 @@ export const Header: React.FC<HeaderProps> = ({ theme, toggleTheme }) => {
       <div
         style={{
           width: '100%',
-          maxWidth: isHome ? '100%' : '1720px',
+          maxWidth: '1720px',
           margin: '0 auto',
           height: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: isHome ? '0 32px' : '0 24px',
+          padding: isHome ? '0 clamp(16px, 3.5vw, 56px)' : '0 24px',
           gap: '20px',
         }}
       >

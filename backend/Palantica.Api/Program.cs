@@ -21,6 +21,8 @@ var builder = WebApplication.CreateBuilder(args);
 // ==========================================
 builder.Services.AddSingleton<IDbConnectionFactory, NpgsqlConnectionFactory>();
 builder.Services.AddSingleton<SupabaseRestClient>();
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient();
 
 // Feature Repositories y Servicios de Dominio
 builder.Services.AddScoped<AuthRepository>();

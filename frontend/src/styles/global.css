@@ -382,15 +382,33 @@ button {
 }
 
 /* ==========================================================
-   PALANTICA EDITORIAL EXTENSIONS (HOME LOOKBOOK FULL-BLEED)
+   PALANTICA EDITORIAL EXTENSIONS (CANVAS ENMARCADO CON SEPARACIÓN)
    ========================================================== */
 
 .editorial-app-container {
-  max-width: 100% !important;
-  padding: 0 !important;
-  margin: 0 !important;
   width: 100% !important;
-  overflow-x: hidden;
+  max-width: 1720px !important;
+  margin: 0 auto !important;
+  padding: 0 16px !important;
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  .editorial-app-container {
+    padding: 0 24px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .editorial-app-container {
+    padding: 0 40px !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  .editorial-app-container {
+    padding: 0 56px !important;
+  }
 }
 
 .editorial-main-content {
@@ -398,6 +416,12 @@ button {
   max-width: 100% !important;
   margin: 0 !important;
   width: 100% !important;
+}
+
+.palantica-editorial-home {
+  border-left: 1px solid var(--editorial-border);
+  border-right: 1px solid var(--editorial-border);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);
 }
 
 .font-editorial {

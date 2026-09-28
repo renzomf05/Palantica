@@ -2,7 +2,45 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Cpu } from 'lucide-react';
 
-export const EncyclopediaBridge: React.FC = () => {
+interface EncyclopediaBridgeProps {
+  isReserved?: boolean;
+}
+
+export const EncyclopediaBridge: React.FC<EncyclopediaBridgeProps> = ({ isReserved = true }) => {
+  if (isReserved) {
+    return (
+      <section className="w-full py-12 px-6 md:px-12 border-b border-[var(--editorial-border)] bg-[var(--editorial-bg)] text-[var(--editorial-fg)]">
+        <div className="max-w-6xl mx-auto border border-dashed border-[var(--editorial-border)] p-8 md:p-12 relative overflow-hidden bg-[var(--editorial-surface)]/20 text-center select-none">
+          <div className="flex justify-between items-start mb-6">
+            <div className="flex items-center gap-2">
+              <Cpu size={14} className="text-[var(--editorial-muted)]" />
+              <span className="editorial-meta text-[10px] text-[var(--editorial-muted)] tracking-[0.2em]">
+                [ PUENTE CON LA ENCICLOPEDIA // EN ESPERA ]
+              </span>
+            </div>
+            <span className="editorial-meta text-[9px] text-[var(--editorial-dim)] font-mono">
+              BANCO DE PRUEBAS PALANTICA LAB
+            </span>
+          </div>
+
+          <div className="py-8 flex flex-col items-center justify-center gap-2">
+            <span className="editorial-meta text-[11px] text-[var(--editorial-muted)] tracking-[0.25em] uppercase">
+              [ ESPACIO RESERVADO ]
+            </span>
+            <p className="text-xs text-[var(--editorial-dim)] font-editorial max-w-[42ch]">
+              Módulo de análisis de laboratorio y correlación con catálogo en preparación.
+            </p>
+          </div>
+
+          <div className="flex justify-between items-center text-[10px] font-mono text-[var(--editorial-dim)] border-t border-dashed border-[var(--editorial-border)]/60 pt-4">
+            <span>ENCICLOPEDIA ACTIVA</span>
+            <span>MODO WIREFRAME</span>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="w-full py-16 px-6 md:px-12 border-b border-[var(--editorial-border)] bg-[var(--editorial-bg)] text-[var(--editorial-fg)]">
       <div className="max-w-6xl mx-auto border border-[var(--editorial-border)] p-8 md:p-12 relative overflow-hidden bg-[var(--editorial-surface)]">
