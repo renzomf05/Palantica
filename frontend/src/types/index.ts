@@ -50,6 +50,8 @@ export interface PalaSimilar {
   marcaNombre: string;
   modelo: string;
   forma: string;
+  materialCaras: string;
+  materialNucleo: string;
   imagenUrl?: string | null;
   precioReferencia: number;
   monedaPrecio?: string;

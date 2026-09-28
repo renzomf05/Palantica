@@ -5,6 +5,7 @@ import { MobileLayout } from './components/layout/MobileLayout';
 import { HomePage } from './pages/Home/HomePage';
 import { CatalogoPage } from './pages/Catalogo/CatalogoPage';
 import { PalaDetallePage } from './pages/PalaDetalle/PalaDetallePage';
+import { ComparadorPage } from './pages/Comparador/ComparadorPage';
 import { PadelgramPage } from './pages/Padelgram/PadelgramPage';
 import { PaleteroPage } from './pages/Paletero/PaleteroPage';
 import { PerfilPage } from './pages/Perfil/PerfilPage';
@@ -44,6 +45,7 @@ export const App: React.FC = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/catalogo" element={<CatalogoPage />} />
             <Route path="/palas/:id" element={<PalaDetallePage />} />
+            <Route path="/comparador" element={<ComparadorPage />} />
             <Route path="/padelgram" element={<PadelgramPage />} />
             <Route path="/paletero" element={<PaleteroPage />} />
             <Route path="/perfil" element={<PerfilPage />} />

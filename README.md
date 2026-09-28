@@ -1,5 +1,5 @@
-# Palantica 🎾
-> **El Fragrantica de las palas de pádel** — Enciclopedia analítica, catálogo interactivo y comunidad de reviews técnicas de pádel.
+# Palantica
+> **Palantica - La Enciclopedia Técnica y Sensorial del Pádel** — Enciclopedia analítica, catálogo interactivo y comunidad de reviews técnicas de pádel.
 
 Palantica es una plataforma comunitaria y analítica diseñada para jugadores que buscan conocer a fondo cada pala de pádel: valoraciones de dureza, comportamiento según la época y temperatura del año, composición de materiales (núcleo y caras), punto dulce, balance y un motor algorítmico de **"Palas parecidas"**.
 
@@ -7,7 +7,7 @@ Palantica es una plataforma comunitaria y analítica diseñada para jugadores qu
 
 ## ⚡ Características Principales
 
-- **Ficha Técnica Estilo Fragrantica**:
+- **Ficha Técnica Enciclopédica y Sensorial**:
   - Matriz y radar de atributos (Potencia, Control, Salida de bola, Maniobrabilidad, Punto dulce).
   - Votación comunitaria de dureza (Blanda / Media / Dura).
   - Comportamiento térmico: Recomendación estacional (Verano vs Invierno).
@@ -29,5 +29,5 @@ Palantica es una plataforma comunitaria y analítica diseñada para jugadores qu
 - **Backend**: C# (.NET 10 / ASP.NET Core Web API) + Entity Framework Core.
 - **Frontend**: React 19 + TypeScript + Vite.
 - **Animaciones**: `motion.dev`, `animejs`.
-- **Estética**: Skeuomorfismo deportivo, soporte Nativo Claro / Oscuro, acentos Verde Lima Tenis (`#D4FF00`) y Rosa Fluo (`#FF007F`), patrones Kokonut UI y BkLit UI.
+- **Estética**: Skeuomorfismo deportivo, soporte Nativo Claro / Oscuro, acentos Verde Lima Óptico (`#A3E635`) y Azul Cancha (`#2563EB`), fondo crema pergamino.
 - **Directivas**: Anti-Vibecoding estricto y filosofía Fail-Fast.

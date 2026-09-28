@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "7f8b9e12-45a1-4321-b01a-palantica2026",
     "name": "Palantica API - Colección Oficial (Algoritmos III - Hilet)",
-    "description": "Colección completa de endpoints para Palantica: 'El Fragrantica de las Palas de Pádel'. Incluye autenticación JWT, catálogo filtrado, cálculo de similitud vectorial (Algoritmos III), reglas multientidad para reseñas y votos, paletero y feed comunitario Padelgram.",
+    "description": "Colección completa de endpoints para Palantica: 'La Enciclopedia Técnica y Sensorial del Pádel'. Incluye autenticación JWT, catálogo filtrado, cálculo de similitud vectorial (Algoritmos III), reglas multientidad para reseñas y votos, paletero y feed comunitario Padelgram.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [

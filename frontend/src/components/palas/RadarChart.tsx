@@ -118,7 +118,7 @@ export const RadarChart: React.FC<RadarChartProps> = ({ data, size = 320 }) => {
                 fill="var(--text-secondary)"
                 fontSize="11"
                 fontWeight="600"
-                fontFamily="Outfit, sans-serif"
+                fontFamily="var(--font-sans)"
               >
                 {axis.label}
               </text>

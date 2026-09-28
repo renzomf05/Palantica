@@ -1,12 +1,30 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import { palasApi } from '../../api/palas';
 import { shopifyApi } from '../../api/shopify';
 import type { Pala, Marca, PalaFilterParams, ShopifyPalaPreview } from '../../types';
 import { PalaCard } from '../../components/ui/PalaCard';
 import { PalaCardSkeleton } from '../../components/ui/Skeleton';
-import { Search, SlidersHorizontal, ChevronLeft, ChevronRight, X, ShoppingBag, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { PalaFinderModal } from '../../components/palas/PalaFinderModal';
+import {
+  Search,
+  SlidersHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  ShoppingBag,
+  RefreshCw,
+  CheckCircle2,
+  Filter,
+  RotateCcw,
+  Sparkles,
+  ArrowLeftRight
+} from 'lucide-react';
 
 export const CatalogoPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlSearch = searchParams.get('search') || '';
+
   const [palas, setPalas] = useState<Pala[]>([]);
   const [marcas, setMarcas] = useState<Marca[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,13 +33,14 @@ export const CatalogoPage: React.FC = () => {
   const [totalCount, setTotalCount] = useState(0);
 
   // Filtros
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(urlSearch);
   const [selectedMarca, setSelectedMarca] = useState('');
   const [selectedForma, setSelectedForma] = useState('');
   const [selectedEstacion, setSelectedEstacion] = useState('');
   const [durezaMin, setDurezaMin] = useState<number | undefined>(undefined);
   const [orderBy, setOrderBy] = useState('puntuacion');
-  const [showFilters, setShowFilters] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [showFinder, setShowFinder] = useState(false);
 
   // Shopify Modal
   const [showShopifyModal, setShowShopifyModal] = useState(false);
@@ -30,6 +49,14 @@ export const CatalogoPage: React.FC = () => {
   const [shopifyLoading, setShopifyLoading] = useState(false);
   const [shopifySyncing, setShopifySyncing] = useState(false);
   const [shopifySuccessMsg, setShopifySuccessMsg] = useState<string | null>(null);
+
+  // Sincronizar parámetro de búsqueda de la URL (ej: si viene desde el buscador del Header)
+  useEffect(() => {
+    if (urlSearch !== search) {
+      setSearch(urlSearch);
+      setPage(1);
+    }
+  }, [urlSearch]);
 
   // Cargar marcas iniciales
   useEffect(() => {
@@ -85,7 +112,12 @@ export const CatalogoPage: React.FC = () => {
     setDurezaMin(undefined);
     setOrderBy('puntuacion');
     setPage(1);
+    setSearchParams({});
   };
+
+  const hasActiveFilters = Boolean(
+    search || selectedMarca || selectedForma || selectedEstacion || durezaMin || orderBy !== 'puntuacion'
+  );
 
   const handlePreviewShopify = async () => {
     setShopifyLoading(true);
@@ -113,46 +145,185 @@ export const CatalogoPage: React.FC = () => {
     }
   };
 
+  // Componente de controles de filtros reutilizable entre Sidebar desktop y Drawer móvil
+  const renderFilterControls = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Filter size={16} color="var(--padel-court-blue-vibrant)" />
+          <span style={{ fontSize: '0.90rem', fontWeight: 800 }}>Filtros Técnicos</span>
+        </div>
+        {hasActiveFilters && (
+          <button
+            onClick={resetFilters}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '0.74rem',
+              color: 'var(--padel-turf-green)',
+              fontWeight: 700,
+            }}
+          >
+            <RotateCcw size={12} />
+            <span>Restablecer</span>
+          </button>
+        )}
+      </div>
+
+      {/* Fabricante */}
+      <div>
+        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+          Fabricante / Marca
+        </label>
+        <select
+          value={selectedMarca}
+          onChange={(e) => {
+            setSelectedMarca(e.target.value);
+            setPage(1);
+          }}
+          className="input-field"
+        >
+          <option value="">Todas las marcas</option>
+          {marcas.map((m) => (
+            <option key={m.id} value={m.nombre}>
+              {m.nombre} ({m.totalPalas})
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Formato Geométrico */}
+      <div>
+        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+          Formato de Molde
+        </label>
+        <select
+          value={selectedForma}
+          onChange={(e) => {
+            setSelectedForma(e.target.value);
+            setPage(1);
+          }}
+          className="input-field"
+        >
+          <option value="">Todos los moldes</option>
+          <option value="Redonda">Redonda (Control)</option>
+          <option value="Lagrima">Lágrima (Polivalente)</option>
+          <option value="Diamante">Diamante (Potencia)</option>
+        </select>
+      </div>
+
+      {/* Comportamiento Térmico */}
+      <div>
+        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+          Comportamiento Térmico
+        </label>
+        <select
+          value={selectedEstacion}
+          onChange={(e) => {
+            setSelectedEstacion(e.target.value);
+            setPage(1);
+          }}
+          className="input-field"
+        >
+          <option value="">Cualquier estación</option>
+          <option value="Verano">Verano (&gt;25°C / Goma que no ablande)</option>
+          <option value="Invierno">Invierno (&lt;15°C / Goma elástica)</option>
+          <option value="TodoAno">Todo el año</option>
+        </select>
+      </div>
+
+      {/* Dureza Mínima */}
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+          <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+            Dureza Mínima
+          </label>
+          <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--padel-court-blue-vibrant)' }}>
+            {durezaMin ? `${durezaMin} / 10` : 'Cualquiera'}
+          </span>
+        </div>
+        <input
+          type="range"
+          min="1"
+          max="10"
+          step="1"
+          value={durezaMin || 1}
+          onChange={(e) => {
+            setDurezaMin(Number(e.target.value));
+            setPage(1);
+          }}
+          style={{ width: '100%', accentColor: 'var(--padel-court-blue-vibrant)' }}
+        />
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+          <span>1 Blanda</span>
+          <span>5 Media</span>
+          <span>10 Dura</span>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
-      {/* Header del Catálogo con Acciones */}
+      {/* Header del Catálogo con Titular & Acciones */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <span className="badge badge-sage" style={{ marginBottom: '8px' }}>
+          <span className="badge badge-steel" style={{ marginBottom: '8px' }}>
             Enciclopedia de Palas
           </span>
           <h1 style={{ fontSize: '2.1rem', fontWeight: 900, letterSpacing: '-0.03em' }}>
             Catálogo Técnico de Pádel
           </h1>
           <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Explorá {totalCount} modelos analizados con materiales de carbono, gomas de núcleo y métricas de laboratorio.
+            Explorá {totalCount} modelos con especificación de materiales de carbono, gomas de núcleo y métricas sensoriales.
           </p>
         </div>
 
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setShowFinder(true)}
+            className="btn-primary"
+            style={{ borderRadius: '0px' }}
+          >
+            <Sparkles size={15} />
+            <span>Pala Finder (Quiz)</span>
+          </button>
+
+          <Link
+            to="/comparador"
+            className="btn-secondary"
+            style={{ borderRadius: '0px' }}
+          >
+            <ArrowLeftRight size={15} />
+            <span>Comparador A/B</span>
+          </Link>
+
           <button
             onClick={() => {
               setShowShopifyModal(true);
               if (shopifyPreviews.length === 0) handlePreviewShopify();
             }}
             className="btn-secondary"
-            title="Importar palas reales desde tiendas Shopify"
+            style={{ borderRadius: '0px' }}
+            title="Sincronizar palas reales desde tiendas Shopify"
           >
-            <ShoppingBag size={15} color="var(--color-primary-sage)" />
+            <ShoppingBag size={15} color="var(--padel-turf-green)" />
             <span>Integrador Shopify</span>
           </button>
 
           <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="btn-secondary"
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            className="btn-secondary mobile-filter-btn"
+            style={{ borderRadius: '0px' }}
           >
             <SlidersHorizontal size={15} />
-            <span>Filtros {selectedMarca || selectedForma || durezaMin ? '• Activos' : ''}</span>
+            <span>Filtros {hasActiveFilters ? '• Activos' : ''}</span>
           </button>
         </div>
       </div>
 
-      {/* Barra de Búsqueda y Ordenamiento */}
+      {/* Barra de Búsqueda y Ordenamiento Superior */}
       <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: '260px' }}>
           <Search
@@ -162,10 +333,11 @@ export const CatalogoPage: React.FC = () => {
           />
           <input
             type="text"
-            placeholder="Buscar por modelo, fabricante o jugador pro (ej: AT10 18K, Tapia, Vertex)..."
+            placeholder="Buscar por modelo, fabricante o jugador pro (ej: AT10 18K, Tapia, Vertex, Metalbone)..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
+              setSearchParams(e.target.value.trim() ? { search: e.target.value.trim() } : {});
               setPage(1);
             }}
             className="input-field"
@@ -173,7 +345,10 @@ export const CatalogoPage: React.FC = () => {
           />
           {search && (
             <button
-              onClick={() => setSearch('')}
+              onClick={() => {
+                setSearch('');
+                setSearchParams({});
+              }}
               style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}
             >
               <X size={16} />
@@ -188,191 +363,124 @@ export const CatalogoPage: React.FC = () => {
             setPage(1);
           }}
           className="input-field"
-          style={{ width: 'auto', minWidth: '190px' }}
+          style={{ width: 'auto', minWidth: '200px' }}
         >
           <option value="puntuacion">Mejor Puntuadas</option>
           <option value="novedad">Más Recientes (2025/2026)</option>
-          <option value="precio_desc">Mayor Gama / Precio</option>
+          <option value="precio_desc">Mayor Gama</option>
           <option value="precio_asc">Menor Precio</option>
           <option value="dureza">Mayor Dureza</option>
         </select>
       </div>
 
-      {/* Filtros Expandibles */}
-      {showFilters && (
+      {/* Drawer Móvil de Filtros */}
+      {showMobileFilters && (
         <div
-          className="card-skeuomorphic animate-slide-up"
+          className="card-skeuomorphic animate-slide-up mobile-filter-drawer"
           style={{
             padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
             background: 'var(--bg-card)',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 800 }}>Filtros Técnicos de Catálogo</h3>
-            <button
-              onClick={resetFilters}
-              style={{ fontSize: '0.80rem', color: 'var(--color-primary-sage)', fontWeight: 700 }}
+          {renderFilterControls()}
+        </div>
+      )}
+
+      {/* Layout Full-Width Desktop: Sidebar Sticky a la Izquierda + Grid a la Derecha */}
+      <div className="catalogo-desktop-layout">
+        {/* Sidebar Fijo de Filtros en Desktop */}
+        <aside
+          className="catalogo-sidebar"
+          style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-card)',
+            borderRadius: 'var(--radius-md)',
+            padding: '20px',
+            boxShadow: 'var(--shadow-card)',
+            position: 'sticky',
+            top: 'calc(var(--header-height) + 16px)',
+          }}
+        >
+          {renderFilterControls()}
+        </aside>
+
+        {/* Contenedor Principal de Palas */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {loading ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '20px' }}>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <PalaCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : palas.length === 0 ? (
+            <div
+              className="card-skeuomorphic"
+              style={{
+                padding: '56px 24px',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '14px',
+              }}
             >
-              Restablecer Filtros
-            </button>
-          </div>
+              <p style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                No encontramos modelos que coincidan con los criterios técnicos seleccionados.
+              </p>
+              <button onClick={resetFilters} className="btn-primary" style={{ marginTop: '8px' }}>
+                <span>Limpiar Filtros</span>
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '20px' }}>
+              {palas.map((pala) => (
+                <PalaCard key={pala.id} pala={pala} />
+              ))}
+            </div>
+          )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
-            {/* Fabricante */}
-            <div>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                Marca
-              </label>
-              <select
-                value={selectedMarca}
-                onChange={(e) => {
-                  setSelectedMarca(e.target.value);
-                  setPage(1);
+          {/* Paginación */}
+          {totalPages > 1 && (
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '14px',
+                marginTop: '16px',
+              }}
+            >
+              <button
+                disabled={page <= 1}
+                onClick={() => {
+                  setPage((p) => Math.max(1, p - 1));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="input-field"
+                className="btn-secondary"
+                style={{ opacity: page <= 1 ? 0.5 : 1 }}
               >
-                <option value="">Todas las marcas</option>
-                {marcas.map((m) => (
-                  <option key={m.id} value={m.nombre}>
-                    {m.nombre} ({m.totalPalas})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Formato */}
-            <div>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                Formato Geométrico
-              </label>
-              <select
-                value={selectedForma}
-                onChange={(e) => {
-                  setSelectedForma(e.target.value);
-                  setPage(1);
+                <ChevronLeft size={16} />
+                <span>Anterior</span>
+              </button>
+              <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                Página {page} de {totalPages}
+              </span>
+              <button
+                disabled={page >= totalPages}
+                onClick={() => {
+                  setPage((p) => Math.min(totalPages, p + 1));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="input-field"
+                className="btn-secondary"
+                style={{ opacity: page >= totalPages ? 0.5 : 1 }}
               >
-                <option value="">Todas las formas</option>
-                <option value="Redonda">Redonda (Control)</option>
-                <option value="Lagrima">Lágrima (Polivalente)</option>
-                <option value="Diamante">Diamante (Potencia)</option>
-              </select>
+                <span>Siguiente</span>
+                <ChevronRight size={16} />
+              </button>
             </div>
-
-            {/* Estación / Clima */}
-            <div>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                Comportamiento Térmico
-              </label>
-              <select
-                value={selectedEstacion}
-                onChange={(e) => {
-                  setSelectedEstacion(e.target.value);
-                  setPage(1);
-                }}
-                className="input-field"
-              >
-                <option value="">Cualquier estación</option>
-                <option value="Verano">Verano (Goma densa / +25°C)</option>
-                <option value="Invierno">Invierno (Goma elástica / -15°C)</option>
-                <option value="TodoAno">Todo el año</option>
-              </select>
-            </div>
-
-            {/* Dureza Mínima */}
-            <div>
-              <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                Dureza Mínima: {durezaMin ? `${durezaMin}/10` : 'Sin restricción'}
-              </label>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                step="1"
-                value={durezaMin || 1}
-                onChange={(e) => {
-                  setDurezaMin(Number(e.target.value));
-                  setPage(1);
-                }}
-                style={{ width: '100%', accentColor: 'var(--color-primary-sage)', marginTop: '8px' }}
-              />
-            </div>
-          </div>
+          )}
         </div>
-      )}
-
-      {/* Grid Fluido de Palas (3 a 4 Columnas en PC) */}
-      {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <PalaCardSkeleton key={i} />
-          ))}
-        </div>
-      ) : palas.length === 0 ? (
-        <div
-          className="card-skeuomorphic"
-          style={{
-            padding: '56px 24px',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '14px',
-          }}
-        >
-          <p style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-            No encontramos modelos que coincidan con los criterios seleccionados.
-          </p>
-          <button onClick={resetFilters} className="btn-primary" style={{ marginTop: '8px' }}>
-            <span>Limpiar Filtros</span>
-          </button>
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-          {palas.map((pala) => (
-            <PalaCard key={pala.id} pala={pala} />
-          ))}
-        </div>
-      )}
-
-      {/* Paginación */}
-      {totalPages > 1 && (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '14px',
-            marginTop: '20px',
-          }}
-        >
-          <button
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="btn-secondary"
-            style={{ opacity: page <= 1 ? 0.5 : 1 }}
-          >
-            <ChevronLeft size={16} />
-            <span>Anterior</span>
-          </button>
-          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-            Página {page} de {totalPages}
-          </span>
-          <button
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            className="btn-secondary"
-            style={{ opacity: page >= totalPages ? 0.5 : 1 }}
-          >
-            <span>Siguiente</span>
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      )}
+      </div>
 
       {/* Modal Integrador Shopify */}
       {showShopifyModal && (
@@ -380,7 +488,7 @@ export const CatalogoPage: React.FC = () => {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(11, 15, 23, 0.85)',
+            background: 'rgba(10, 17, 40, 0.88)',
             backdropFilter: 'blur(12px)',
             display: 'flex',
             alignItems: 'center',
@@ -401,7 +509,7 @@ export const CatalogoPage: React.FC = () => {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <ShoppingBag size={22} color="var(--color-primary-sage)" />
+                <ShoppingBag size={22} color="var(--padel-turf-green)" />
                 <h3 style={{ fontSize: '1.35rem', fontWeight: 800 }}>Integrador Shopify de Pádel</h3>
               </div>
               <button onClick={() => setShowShopifyModal(false)} style={{ color: 'var(--text-muted)' }}>
@@ -410,7 +518,7 @@ export const CatalogoPage: React.FC = () => {
             </div>
 
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: 1.5 }}>
-              Palantica puede conectarse en tiempo real a endpoints públicos <code>/products.json</code> de tiendas de pádel montadas sobre Shopify para extraer imágenes de alta definición y especificaciones de producto.
+              Palantica se conecta a endpoints públicos <code>/products.json</code> de tiendas de pádel para importar fotografías de alta definición y especificaciones de producto auténticas.
             </p>
 
             <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
@@ -438,10 +546,10 @@ export const CatalogoPage: React.FC = () => {
                   alignItems: 'center',
                   gap: '8px',
                   padding: '12px',
-                  background: 'rgba(82, 183, 136, 0.15)',
-                  border: '1px solid var(--color-primary-sage)',
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  border: '1px solid var(--padel-turf-green)',
                   borderRadius: 'var(--radius-sm)',
-                  color: 'var(--color-primary-sage)',
+                  color: 'var(--padel-turf-green)',
                   fontSize: '0.85rem',
                   fontWeight: 600,
                   marginBottom: '16px',
@@ -455,7 +563,7 @@ export const CatalogoPage: React.FC = () => {
             {shopifyPreviews.length > 0 && (
               <div>
                 <h4 style={{ fontSize: '0.90rem', fontWeight: 700, marginBottom: '10px', color: 'var(--text-secondary)' }}>
-                  Modelos detectados en catálogo Shopify ({shopifyPreviews.length}):
+                  Modelos detectados en catálogo ({shopifyPreviews.length}):
                 </h4>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px', overflowY: 'auto', marginBottom: '20px' }}>
@@ -482,7 +590,7 @@ export const CatalogoPage: React.FC = () => {
                           <span style={{ color: 'var(--text-muted)', marginLeft: '6px' }}>({item.marca})</span>
                         </div>
                       </div>
-                      <span style={{ fontWeight: 700, color: 'var(--color-primary-sage)' }}>
+                      <span style={{ fontWeight: 700, color: 'var(--padel-turf-green)' }}>
                         {item.precio.toFixed(2)} {item.moneda}
                       </span>
                     </div>
@@ -506,6 +614,24 @@ export const CatalogoPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      <style>{`
+        @media (min-width: 1080px) {
+          .mobile-filter-btn {
+            display: none !important;
+          }
+          .mobile-filter-drawer {
+            display: none !important;
+          }
+        }
+        @media (max-width: 1079px) {
+          .catalogo-sidebar {
+            display: none !important;
+          }
+        }
+      `}</style>
+
+      <PalaFinderModal isOpen={showFinder} onClose={() => setShowFinder(false)} />
     </div>
   );
 };

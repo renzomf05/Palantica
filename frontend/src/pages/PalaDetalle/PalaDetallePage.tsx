@@ -4,23 +4,29 @@ import { palasApi } from '../../api/palas';
 import { resenasApi } from '../../api/resenas';
 import { votacionesApi } from '../../api/votaciones';
 import { paleteroApi } from '../../api/paletero';
+import { padelgramApi } from '../../api/padelgram';
 import { useAuth } from '../../hooks/useAuth';
-import type { PalaDetalle, Resena, CategoriaPaletero } from '../../types';
+import type { PalaDetalle, Resena, CategoriaPaletero, PadelgramPost } from '../../types';
 import { RadarChart } from '../../components/palas/RadarChart';
-import { DurezaBar } from '../../components/palas/DurezaBar';
+import { AcordesDeJuego } from '../../components/palas/AcordesDeJuego';
+import { PiramideMateriales } from '../../components/palas/PiramideMateriales';
+import { MatrizTermica } from '../../components/palas/MatrizTermica';
+import { SentimientoJugador } from '../../components/palas/SentimientoJugador';
+import { PrecioReferenciaBox } from '../../components/palas/PrecioReferenciaBox';
 import { Skeleton } from '../../components/ui/Skeleton';
 import {
   Star,
   Briefcase,
-  Layers,
   Activity,
   Sliders,
   MessageSquarePlus,
   Sparkles,
   CheckCircle2,
   ArrowLeft,
-  Tag,
-  ShieldCheck
+  ArrowLeftRight,
+  Camera,
+  ThumbsUp,
+  ThumbsDown
 } from 'lucide-react';
 
 export const PalaDetallePage: React.FC = () => {
@@ -30,8 +36,12 @@ export const PalaDetallePage: React.FC = () => {
 
   const [pala, setPala] = useState<PalaDetalle | null>(null);
   const [resenas, setResenas] = useState<Resena[]>([]);
+  const [padelgramPosts, setPadelgramPosts] = useState<PadelgramPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingResenas, setLoadingResenas] = useState(true);
+
+  // Validación comunitaria de similitud ("¿Se siente igual en pista?")
+  const [similarVotes, setSimilarVotes] = useState<Record<number, 'yes' | 'no'>>({});
 
   // Modales
   const [showResenaModal, setShowResenaModal] = useState(false);
@@ -89,6 +99,13 @@ export const PalaDetallePage: React.FC = () => {
       console.error('Error cargando reseñas:', err);
     } finally {
       setLoadingResenas(false);
+    }
+
+    try {
+      const padelgramData = await padelgramApi.getFeed(1, 6, palaId);
+      setPadelgramPosts(padelgramData.items);
+    } catch (err) {
+      console.error('Error cargando Padelgram reel:', err);
     }
   };
 
@@ -162,6 +179,13 @@ export const PalaDetallePage: React.FC = () => {
     }
   };
 
+  const handleVoteSimilar = (similarId: number, type: 'yes' | 'no') => {
+    setSimilarVotes((prev) => ({
+      ...prev,
+      [similarId]: type,
+    }));
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -202,10 +226,10 @@ export const PalaDetallePage: React.FC = () => {
         <span>Volver al Catálogo</span>
       </Link>
 
-      {/* Contenedor Responsivo Desktop: 2 Columnas en PC */}
+      {/* Contenedor Responsivo Desktop: Layout Asimétrico 2 Columnas */}
       <div className="pala-grid-layout">
         {/* ==========================================================
-            COLUMNA IZQUIERDA: Visor de Producto, Precio & CTA
+            COLUMNA IZQUIERDA (Sticky): Pedestal, Título, Precio & CTA
             ========================================================== */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <section
@@ -217,18 +241,18 @@ export const PalaDetallePage: React.FC = () => {
               gap: '20px',
             }}
           >
-            {/* Pedestal 3D de la Pala */}
+            {/* Pedestal Deportivo con Iluminación Superior */}
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                height: '320px',
+                height: '330px',
                 background: 'radial-gradient(circle at 50% 35%, var(--bg-card-hover) 0%, var(--bg-input) 100%)',
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--border-subtle)',
                 position: 'relative',
-                boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.3)',
+                boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.25)',
               }}
             >
               <img
@@ -249,17 +273,17 @@ export const PalaDetallePage: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '5px',
-                  background: 'rgba(11, 15, 23, 0.85)',
+                  background: 'var(--bg-glass-card)',
                   backdropFilter: 'blur(8px)',
                   padding: '6px 12px',
                   borderRadius: 'var(--radius-full)',
-                  color: 'var(--color-accent-amber)',
+                  color: 'var(--padel-amber-rating)',
                   fontWeight: 800,
                   fontSize: '0.95rem',
                   border: '1px solid var(--border-subtle)',
                 }}
               >
-                <Star size={15} fill="var(--color-accent-amber)" />
+                <Star size={15} fill="var(--padel-amber-rating)" />
                 <span>{pala.puntuacionGeneral.toFixed(1)} / 5.0</span>
               </div>
             </div>
@@ -275,73 +299,56 @@ export const PalaDetallePage: React.FC = () => {
                 <span style={{ fontSize: '0.80rem', color: 'var(--text-muted)' }}>{pala.anoLanzamiento}</span>
               </div>
 
-              <h1 style={{ fontSize: '1.9rem', fontWeight: 900, lineHeight: 1.15 }}>
+              <h1 style={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1.15 }}>
                 {pala.modelo}
               </h1>
 
               {pala.jugadorPro && (
-                <p style={{ fontSize: '0.90rem', color: 'var(--color-primary-sage)', fontWeight: 700, marginTop: '6px' }}>
+                <p style={{ fontSize: '0.90rem', color: 'var(--padel-turf-green)', fontWeight: 700, marginTop: '6px' }}>
                   Empuñada en el circuito profesional por {pala.jugadorPro}
                 </p>
               )}
 
               {pala.descripcion && (
-                <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginTop: '12px' }}>
+                <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.55, marginTop: '12px' }}>
                   {pala.descripcion}
                 </p>
               )}
             </div>
 
-            {/* SECCIÓN DESTACADA: Precio Oficial y Fuente */}
-            <div
-              style={{
-                padding: '16px',
-                background: 'var(--bg-input)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.2)',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  Precio de Referencia Oficial
-                </span>
-                <span className="badge badge-sage">
-                  <Tag size={11} />
-                  <span>{pala.monedaPrecio || 'EUR'}</span>
-                </span>
-              </div>
+            {/* CAJA TÉCNICA DE PRECIO OFICIAL DE REFERENCIA (Requisito planesProyecto.md) */}
+            <PrecioReferenciaBox
+              precioReferencia={pala.precioReferencia}
+              monedaPrecio={pala.monedaPrecio || 'EUR'}
+              fuentePrecio={pala.fuentePrecio}
+              marcaNombre={pala.marcaNombre}
+            />
 
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                <span style={{ fontSize: '1.9rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-                  {pala.precioReferencia.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                <ShieldCheck size={14} color="var(--color-primary-sage)" />
-                <span>Fuente: {pala.fuentePrecio || `PVP Oficial Recomendado ${pala.marcaNombre}`}</span>
-              </div>
-            </div>
-
-            {/* Botones de Acción Táctiles */}
+            {/* Botones de Acción Primaria */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <button
                 onClick={() => (isAuthenticated ? setShowPaleteroModal(true) : alert('Iniciá sesión para guardar palas en tu paletero.'))}
                 className="btn-primary"
-                style={{ width: '100%' }}
+                style={{ width: '100%', borderRadius: '0px' }}
               >
                 <Briefcase size={16} />
                 <span>Guardar en Mi Paletero</span>
               </button>
 
+              <Link
+                to={`/comparador?pala1=${pala.id}`}
+                className="btn-secondary"
+                style={{ width: '100%', borderRadius: '0px' }}
+              >
+                <ArrowLeftRight size={15} />
+                <span>Comparar A/B con otra pala</span>
+              </Link>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <button
                   onClick={() => (isAuthenticated ? setShowVotoModal(true) : alert('Iniciá sesión para votar atributos técnicos.'))}
                   className="btn-secondary"
+                  style={{ borderRadius: '0px' }}
                 >
                   <Sliders size={15} />
                   <span>Votar Atributos</span>
@@ -350,6 +357,7 @@ export const PalaDetallePage: React.FC = () => {
                 <button
                   onClick={() => (isAuthenticated ? setShowResenaModal(true) : alert('Iniciá sesión para publicar una reseña técnica.'))}
                   className="btn-secondary"
+                  style={{ borderRadius: '0px' }}
                 >
                   <MessageSquarePlus size={15} />
                   <span>Escribir Review</span>
@@ -360,176 +368,319 @@ export const PalaDetallePage: React.FC = () => {
         </div>
 
         {/* ==========================================================
-            COLUMNA DERECHA: Anatomía 3 Niveles, Radar, Dureza, Similares
+            COLUMNA DERECHA: Componentes Enciclopédicos de Palantica
             ========================================================== */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Anatomía Técnica de 3 Niveles */}
-          <section>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Layers size={19} color="var(--color-primary-sage)" />
-              <span>Anatomía Técnica de 3 Niveles</span>
-            </h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '26px' }}>
+          {/* 1. Sensaciones Principales en Pista */}
+          <AcordesDeJuego
+            potencia={pala.potenciaPromedio}
+            control={pala.controlPromedio}
+            salidaBola={pala.salidaBolaPromedio}
+            maniobrabilidad={pala.maniobrabilidadPromedio}
+            puntoDulce={pala.puntoDulcePromedio}
+            confort={pala.confortPromedio}
+          />
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
-              {/* Nivel 1: Macro (Geometría) */}
-              <div className="card-skeuomorphic" style={{ padding: '16px' }}>
-                <span className="badge badge-neutral" style={{ marginBottom: '8px' }}>Nivel 1: Geometría</span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Formato:</span>
-                    <strong>{pala.forma}</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Balance:</span>
-                    <strong>{pala.balanceMm} mm</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Peso:</span>
-                    <strong>{pala.pesoMin} - {pala.pesoMax} g</strong>
-                  </div>
-                </div>
-              </div>
+          {/* 2. Pirámide de Construcción Técnica (3 Niveles: Caras, Núcleo, Chasis) */}
+          <PiramideMateriales
+            materialCaras={pala.materialCaras}
+            superficieRugosa={pala.superficieRugosa}
+            materialNucleo={pala.materialNucleo}
+            forma={pala.forma}
+            balanceMm={pala.balanceMm}
+            pesoMin={pala.pesoMin}
+            pesoMax={pala.pesoMax}
+            anoLanzamiento={pala.anoLanzamiento}
+          />
 
-              {/* Nivel 2: Mesodermo (Caras) */}
-              <div className="card-skeuomorphic" style={{ padding: '16px' }}>
-                <span className="badge badge-steel" style={{ marginBottom: '8px' }}>Nivel 2: Caras</span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Material Caras:</span>
-                    <strong>{pala.materialCaras}</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Superficie:</span>
-                    <strong>{pala.superficieRugosa}</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Temporada:</span>
-                    <strong>{pala.anoLanzamiento}</strong>
-                  </div>
-                </div>
+          {/* 3. Matriz de Sensaciones en Pista (Radar de 6 Ejes) */}
+          <section className="card-skeuomorphic" style={{ padding: '24px' }}>
+            <div style={{ marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Activity size={19} color="var(--padel-court-blue-vibrant)" />
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Matriz de Sensaciones en Pista (Radar de 6 Ejes)</h3>
               </div>
+              <p style={{ fontSize: '0.80rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                Polígono de rendimiento normalizado en laboratorio según telemetría de impactos
+              </p>
+            </div>
 
-              {/* Nivel 3: Núcleo (Alma) */}
-              <div className="card-skeuomorphic" style={{ padding: '16px' }}>
-                <span className="badge badge-sage" style={{ marginBottom: '8px' }}>Nivel 3: Núcleo</span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Goma Núcleo:</span>
-                    <strong>{pala.materialNucleo}</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Clima Recomendado:</span>
-                    <strong>{pala.estacionOptima}</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Dureza Escala:</span>
-                    <strong style={{ color: 'var(--color-primary-sage)' }}>{pala.durezaPromedio.toFixed(1)} / 10</strong>
-                  </div>
-                </div>
-              </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <RadarChart
+                data={{
+                  potencia: pala.potenciaPromedio,
+                  control: pala.controlPromedio,
+                  salidaBola: pala.salidaBolaPromedio,
+                  maniobrabilidad: pala.maniobrabilidadPromedio,
+                  puntoDulce: pala.puntoDulcePromedio,
+                  confort: pala.confortPromedio,
+                }}
+                size={360}
+              />
             </div>
           </section>
 
-          {/* Radar de Sensaciones en Pista */}
-          <section className="card-skeuomorphic" style={{ padding: '24px' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Activity size={19} color="var(--color-primary-sage)" />
-              <span>Matriz de Sensaciones en Pista (Radar de 6 Ejes)</span>
-            </h2>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '18px' }}>
-              Evaluación sensorial y dinámica normalizada en escala de 1 a 10.
-            </p>
-
-            <RadarChart
-              data={{
-                potencia: pala.potenciaPromedio,
-                control: pala.controlPromedio,
-                salidaBola: pala.salidaBolaPromedio,
-                maniobrabilidad: pala.maniobrabilidadPromedio,
-                puntoDulce: pala.puntoDulcePromedio,
-                confort: pala.confortPromedio,
-              }}
-              size={360}
-            />
-          </section>
-
-          {/* Comportamiento Térmico y Dureza */}
-          <DurezaBar
+          {/* 4. Comportamiento Térmico & Escala de Dureza */}
+          <MatrizTermica
             dureza={pala.durezaPromedio}
             estacionOptima={pala.estacionOptima}
             totalVotos={pala.totalVotos}
           />
 
-          {/* Motor de Similitud Vectorial ("Esta pala se siente como...") */}
+          {/* 5. Sentimiento de la Comunidad (5 Estados sin emojis) */}
+          <SentimientoJugador
+            palaId={pala.id}
+            puntuacionGeneral={pala.puntuacionGeneral}
+            totalVotos={pala.totalVotos}
+          />
+
+          {/* 6. "Esta pala se siente como..." (Palas Gemelas / Similitud Vectorial) */}
           {pala.palasSimilares && pala.palasSimilares.length > 0 && (
-            <section>
-              <div style={{ marginBottom: '14px' }}>
+            <section
+              className="card-skeuomorphic"
+              style={{
+                padding: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '18px',
+              }}
+            >
+              <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Sparkles size={19} color="var(--color-primary-sage)" />
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Esta pala se siente como...</h2>
+                  <Sparkles size={19} color="var(--padel-ball-yellow-vibrant)" />
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Esta pala se siente como...</h3>
                 </div>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                  Alternativas directas calculadas algorítmicamente mediante distancia vectorial multicriterio.
+                <p style={{ fontSize: '0.80rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                  Modelos equivalentes calculados por proximidad vectorial en balance, dureza de caras y densidad de núcleo
                 </p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
-                {pala.palasSimilares.map((sim) => (
-                  <Link
-                    key={sim.id}
-                    to={`/palas/${sim.id}`}
-                    className="card-skeuomorphic"
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+                {pala.palasSimilares.map((sim) => {
+                  const userVote = similarVotes[sim.id];
+
+                  return (
+                    <div
+                      key={sim.id}
+                      style={{
+                        padding: '16px',
+                        background: 'var(--bg-input)',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--border-card)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span className="badge badge-neutral">{sim.forma}</span>
+                        <span className="badge badge-steel" style={{ fontWeight: 800 }}>
+                          {sim.similitudPorcentaje}% Match
+                        </span>
+                      </div>
+
+                      <Link
+                        to={`/palas/${sim.id}`}
+                        style={{
+                          height: '140px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        <img
+                          src={sim.imagenUrl || 'https://noxsport.es/cdn/shop/files/PALA_NOX_AT10_GENIUS_18K_BY_AGUSTIN_TAPIA_2025_01.png'}
+                          alt={sim.modelo}
+                          style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                        />
+                      </Link>
+
+                      <div>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                          {sim.marcaNombre}
+                        </span>
+                        <Link to={`/palas/${sim.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                          <h4 style={{ fontSize: '0.98rem', fontWeight: 800, marginTop: '2px' }}>{sim.modelo}</h4>
+                        </Link>
+                      </div>
+
+                      {/* Materiales de la pala gemela */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Caras:</span>
+                          <strong style={{ color: 'var(--text-primary)' }}>{sim.materialCaras}</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Núcleo:</span>
+                          <strong style={{ color: 'var(--text-primary)' }}>{sim.materialNucleo}</strong>
+                        </div>
+                      </div>
+
+                      {/* Botón de Validación Comunitaria de Similitud */}
+                      <div
+                        style={{
+                          borderTop: '1px solid var(--border-subtle)',
+                          paddingTop: '10px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                        }}
+                      >
+                        <span style={{ fontSize: '0.70rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                          ¿Se siente igual en pista?
+                        </span>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            onClick={() => handleVoteSimilar(sim.id, 'yes')}
+                            style={{
+                              flex: 1,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '4px',
+                              padding: '6px 8px',
+                              borderRadius: 'var(--radius-xs)',
+                              fontSize: '0.74rem',
+                              fontWeight: 700,
+                              background: userVote === 'yes' ? 'rgba(16, 185, 129, 0.2)' : 'var(--bg-card)',
+                              border: userVote === 'yes' ? '1px solid var(--padel-turf-green)' : '1px solid var(--border-subtle)',
+                              color: userVote === 'yes' ? 'var(--padel-turf-green)' : 'var(--text-primary)',
+                            }}
+                          >
+                            <ThumbsUp size={12} />
+                            <span>Sí, gemelas</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleVoteSimilar(sim.id, 'no')}
+                            style={{
+                              flex: 1,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '4px',
+                              padding: '6px 8px',
+                              borderRadius: '0px',
+                              fontSize: '0.74rem',
+                              fontWeight: 700,
+                              background: userVote === 'no' ? 'rgba(239, 68, 68, 0.15)' : 'var(--bg-card)',
+                              border: userVote === 'no' ? '1px solid var(--accord-potencia)' : '1px solid var(--border-subtle)',
+                              color: userVote === 'no' ? 'var(--accord-potencia)' : 'var(--text-muted)',
+                            }}
+                          >
+                            <ThumbsDown size={12} />
+                            <span>Diferente</span>
+                          </button>
+                        </div>
+
+                        <Link
+                          to={`/comparador?pala1=${pala.id}&pala2=${sim.id}`}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                            padding: '5px 8px',
+                            borderRadius: '0px',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            background: 'rgba(37, 99, 235, 0.10)',
+                            border: '1px solid rgba(37, 99, 235, 0.35)',
+                            color: 'var(--padel-court-blue-light)',
+                            marginTop: '4px',
+                          }}
+                        >
+                          <ArrowLeftRight size={12} />
+                          <span>Comparar A/B</span>
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* 7. Galería Padelgram en Pista */}
+          {padelgramPosts.length > 0 && (
+            <section
+              className="card-skeuomorphic"
+              style={{
+                padding: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Camera size={19} color="var(--padel-court-blue-vibrant)" />
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Padelgram Reel en Pista</h3>
+                </div>
+                <Link to="/padelgram" className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.78rem' }}>
+                  <span>Ver Feed Social</span>
+                </Link>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
+                {padelgramPosts.map((post) => (
+                  <div
+                    key={post.id}
                     style={{
-                      padding: '16px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '10px',
-                      textDecoration: 'none',
+                      height: '140px',
+                      borderRadius: 'var(--radius-sm)',
+                      overflow: 'hidden',
+                      position: 'relative',
+                      border: '1px solid var(--border-subtle)',
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span className="badge badge-neutral">{sim.forma}</span>
-                      <span className="badge badge-sage" style={{ fontWeight: 800 }}>
-                        {sim.similitudPorcentaje}% Match
-                      </span>
+                    <img
+                      src={post.imagenUrl}
+                      alt={post.palaModelo}
+                      loading="lazy"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        padding: '4px 6px',
+                        background: 'linear-gradient(transparent, rgba(10, 17, 40, 0.85))',
+                        fontSize: '0.68rem',
+                        color: '#FFFFFF',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {post.usuarioNombre}
                     </div>
-
-                    <div style={{ height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <img
-                        src={sim.imagenUrl || 'https://noxsport.es/cdn/shop/files/PALA_NOX_AT10_GENIUS_18K_BY_AGUSTIN_TAPIA_2025_01.png'}
-                        alt={sim.modelo}
-                        style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
-                      />
-                    </div>
-
-                    <div>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
-                        {sim.marcaNombre}
-                      </span>
-                      <h4 style={{ fontSize: '0.98rem', fontWeight: 800, marginTop: '2px' }}>{sim.modelo}</h4>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '8px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                      <span>Dureza: <strong style={{ color: 'var(--text-primary)' }}>{sim.durezaPromedio.toFixed(1)}/10</strong></span>
-                      <span style={{ color: 'var(--color-primary-sage)', fontWeight: 700 }}>{sim.precioReferencia.toFixed(2)} €</span>
-                    </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </section>
           )}
 
-          {/* Reseñas de la Comunidad */}
-          <section>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+          {/* 8. Reseñas Técnicas de la Comunidad */}
+          <section
+            className="card-skeuomorphic"
+            style={{
+              padding: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Reviews y Testimonios en Pista</h2>
-                <span style={{ fontSize: '0.80rem', color: 'var(--text-muted)' }}>{pala.totalResenas} reseñas de jugadores</span>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Reviews y Testimonios en Pista</h3>
+                <span style={{ fontSize: '0.80rem', color: 'var(--text-muted)' }}>{pala.totalResenas} reseñas de jugadores verificadas</span>
               </div>
               <button
                 onClick={() => (isAuthenticated ? setShowResenaModal(true) : alert('Iniciá sesión para publicar una reseña.'))}
                 className="btn-primary"
-                style={{ padding: '6px 14px', fontSize: '0.80rem' }}
+                style={{ padding: '7px 14px', fontSize: '0.80rem' }}
               >
                 <span>+ Escribir Review</span>
               </button>
@@ -538,31 +689,42 @@ export const PalaDetallePage: React.FC = () => {
             {loadingResenas ? (
               <Skeleton height="100px" borderRadius="var(--radius-md)" />
             ) : resenas.length === 0 ? (
-              <div className="card-skeuomorphic" style={{ padding: '28px', textAlign: 'center' }}>
+              <div style={{ padding: '24px', textAlign: 'center', background: 'var(--bg-input)', borderRadius: 'var(--radius-sm)' }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
-                  Aún no hay reseñas registradas para este modelo. ¡Sé el primero en compartir tu experiencia en pista!
+                  Aún no hay reseñas registradas para este modelo. ¡Sé el primero en compartir tus impresiones en pista!
                 </p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {resenas.map((r) => (
-                  <div key={r.id} className="card-skeuomorphic" style={{ padding: '18px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                  <div
+                    key={r.id}
+                    style={{
+                      padding: '16px',
+                      background: 'var(--bg-input)',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid var(--border-subtle)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <strong style={{ fontSize: '0.92rem' }}>{r.usuarioNombre}</strong>
                           <span className="badge badge-neutral" style={{ fontSize: '0.65rem' }}>{r.usuarioNivelJuego}</span>
-                          <span className="badge badge-neutral" style={{ fontSize: '0.65rem' }}>Lado {r.ladoPista}</span>
+                          <span className="badge badge-steel" style={{ fontSize: '0.65rem' }}>Lado {r.ladoPista}</span>
                         </div>
                         <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Tiempo de uso: {r.tiempoUso}</span>
                       </div>
-                      <div style={{ display: 'flex', color: 'var(--color-accent-amber)' }}>
+                      <div style={{ display: 'flex', color: 'var(--padel-amber-rating)' }}>
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} size={13} fill={i < r.puntuacion ? 'var(--color-accent-amber)' : 'none'} />
+                          <Star key={i} size={13} fill={i < r.puntuacion ? 'var(--padel-amber-rating)' : 'none'} />
                         ))}
                       </div>
                     </div>
-                    <h4 style={{ fontSize: '0.98rem', fontWeight: 800, marginBottom: '6px' }}>{r.titulo}</h4>
+                    <h4 style={{ fontSize: '0.98rem', fontWeight: 800 }}>{r.titulo}</h4>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>{r.contenido}</p>
                   </div>
                 ))}
@@ -572,13 +734,13 @@ export const PalaDetallePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modales */}
+      {/* Modal Reseña */}
       {showResenaModal && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(11, 15, 23, 0.85)',
+            background: 'rgba(10, 17, 40, 0.88)',
             backdropFilter: 'blur(10px)',
             display: 'flex',
             alignItems: 'center',
@@ -592,7 +754,7 @@ export const PalaDetallePage: React.FC = () => {
               Publicar Review Técnica
             </h3>
             {resenaError && (
-              <div style={{ padding: '10px', background: 'rgba(224, 122, 95, 0.15)', border: '1px solid var(--color-accent-terracotta)', borderRadius: 'var(--radius-sm)', color: '#fff', fontSize: '0.82rem', marginBottom: '12px' }}>
+              <div style={{ padding: '10px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--accord-potencia)', borderRadius: 'var(--radius-sm)', color: '#fff', fontSize: '0.82rem', marginBottom: '12px' }}>
                 {resenaError}
               </div>
             )}
@@ -607,9 +769,9 @@ export const PalaDetallePage: React.FC = () => {
                       type="button"
                       key={star}
                       onClick={() => setResenaPuntuacion(star)}
-                      style={{ color: star <= resenaPuntuacion ? 'var(--color-accent-amber)' : 'var(--text-muted)' }}
+                      style={{ color: star <= resenaPuntuacion ? 'var(--padel-amber-rating)' : 'var(--text-muted)' }}
                     >
-                      <Star size={22} fill={star <= resenaPuntuacion ? 'var(--color-accent-amber)' : 'none'} />
+                      <Star size={22} fill={star <= resenaPuntuacion ? 'var(--padel-amber-rating)' : 'none'} />
                     </button>
                   ))}
                 </div>
@@ -698,13 +860,13 @@ export const PalaDetallePage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal Votar Atributos */}
+      {/* Modal Votar Atributos (Sin emojis) */}
       {showVotoModal && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(11, 15, 23, 0.85)',
+            background: 'rgba(10, 17, 40, 0.88)',
             backdropFilter: 'blur(10px)',
             display: 'flex',
             alignItems: 'center',
@@ -714,9 +876,12 @@ export const PalaDetallePage: React.FC = () => {
           }}
         >
           <div className="card-skeuomorphic animate-slide-up" style={{ width: '100%', maxWidth: '480px', padding: '24px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '6px' }}>
-              Votar Atributos Técnicos 📊
-            </h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <Sliders size={20} color="var(--padel-court-blue-vibrant)" />
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>
+                Votar Atributos Técnicos
+              </h3>
+            </div>
             <p style={{ fontSize: '0.80rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
               Tu voto recalcula de forma atómica la matriz comunitaria de Palantica.
             </p>
@@ -734,7 +899,7 @@ export const PalaDetallePage: React.FC = () => {
                 <div key={item.label}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 700, marginBottom: '4px' }}>
                     <span>{item.label}</span>
-                    <strong style={{ color: 'var(--color-primary-sage)' }}>{item.val}/10</strong>
+                    <strong style={{ color: 'var(--padel-court-blue-vibrant)' }}>{item.val}/10</strong>
                   </div>
                   <input
                     type="range"
@@ -743,7 +908,7 @@ export const PalaDetallePage: React.FC = () => {
                     step="1"
                     value={item.val}
                     onChange={(e) => item.set(Number(e.target.value))}
-                    style={{ width: '100%', accentColor: 'var(--color-primary-sage)' }}
+                    style={{ width: '100%', accentColor: 'var(--padel-court-blue-vibrant)' }}
                   />
                 </div>
               ))}
@@ -776,13 +941,13 @@ export const PalaDetallePage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal Paletero */}
+      {/* Modal Paletero (Sin emojis) */}
       {showPaleteroModal && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(11, 15, 23, 0.85)',
+            background: 'rgba(10, 17, 40, 0.88)',
             backdropFilter: 'blur(10px)',
             display: 'flex',
             alignItems: 'center',
@@ -792,12 +957,15 @@ export const PalaDetallePage: React.FC = () => {
           }}
         >
           <div className="card-skeuomorphic animate-slide-up" style={{ width: '100%', maxWidth: '420px', padding: '24px' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '12px' }}>
-              Guardar en Mi Paletero 🎒
-            </h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+              <Briefcase size={20} color="var(--padel-turf-green)" />
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>
+                Guardar en Mi Paletero
+              </h3>
+            </div>
 
             {paleteroSuccess ? (
-              <div style={{ padding: '20px', textAlign: 'center', color: 'var(--color-primary-sage)' }}>
+              <div style={{ padding: '20px', textAlign: 'center', color: 'var(--padel-turf-green)' }}>
                 <CheckCircle2 size={40} style={{ margin: '0 auto 10px' }} />
                 <p style={{ fontWeight: 700 }}>¡Pala guardada en tu paletero con éxito!</p>
               </div>
@@ -812,10 +980,10 @@ export const PalaDetallePage: React.FC = () => {
                     onChange={(e) => setPaleteroCat(e.target.value as CategoriaPaletero)}
                     className="input-field"
                   >
-                    <option value="Usando actualmente">🎾 Usando actualmente (Pala titular)</option>
-                    <option value="En el paletero">🎒 En el paletero (Suplente / Reserva)</option>
-                    <option value="Palas que quiero">⭐ Palas que quiero (Wishlist)</option>
-                    <option value="Palas que tuve">📜 Palas que tuve (Historial)</option>
+                    <option value="Usando actualmente">Usando actualmente (Pala titular)</option>
+                    <option value="En el paletero">En el paletero (Suplente / Reserva)</option>
+                    <option value="Palas que quiero">Palas que quiero (Wishlist)</option>
+                    <option value="Palas que tuve">Palas que tuve (Historial)</option>
                   </select>
                 </div>
 
@@ -845,20 +1013,6 @@ export const PalaDetallePage: React.FC = () => {
           </div>
         </div>
       )}
-
-      <style>{`
-        .pala-grid-layout {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 24px;
-        }
-        @media (min-width: 992px) {
-          .pala-grid-layout {
-            grid-template-columns: 440px 1fr;
-            align-items: start;
-          }
-        }
-      `}</style>
     </div>
   );
 };

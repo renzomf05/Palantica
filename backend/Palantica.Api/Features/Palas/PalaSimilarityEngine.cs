@@ -46,6 +46,8 @@ public sealed class PalaSimilarityEngine
                 MarcaNombre: candidate.MarcaNombre,
                 Modelo: candidate.Modelo,
                 Forma: candidate.Forma,
+                MaterialCaras: candidate.MaterialCaras,
+                MaterialNucleo: candidate.MaterialNucleo,
                 ImagenUrl: candidate.ImagenUrl,
                 PrecioReferencia: candidate.PrecioReferencia,
                 MonedaPrecio: candidate.MonedaPrecio,

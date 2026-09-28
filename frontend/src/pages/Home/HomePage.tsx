@@ -1,17 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { palasApi } from '../../api/palas';
 import { noticiasApi } from '../../api/noticias';
-import type { Pala, Noticia } from '../../types';
+import { padelgramApi } from '../../api/padelgram';
+import type { Pala, Noticia, PadelgramPost } from '../../types';
 import { PalaCard } from '../../components/ui/PalaCard';
 import { PalaCardSkeleton, Skeleton } from '../../components/ui/Skeleton';
-import { ArrowRight, Flame, Newspaper, Sparkles, ChevronRight, Award, Compass, ShieldCheck } from 'lucide-react';
+import { PalaFinderModal } from '../../components/palas/PalaFinderModal';
+import {
+  ArrowRight,
+  ArrowLeftRight,
+  Flame,
+  Newspaper,
+  Sparkles,
+  ChevronRight,
+  Award,
+  Compass,
+  ShieldCheck,
+  Camera,
+  Search
+} from 'lucide-react';
 
 export const HomePage: React.FC = () => {
+  const navigate = useNavigate();
+
   const [palasDestacadas, setPalasDestacadas] = useState<Pala[]>([]);
   const [noticias, setNoticias] = useState<Noticia[]>([]);
+  const [padelgramPosts, setPadelgramPosts] = useState<PadelgramPost[]>([]);
+  const [heroSearch, setHeroSearch] = useState('');
+  const [showFinder, setShowFinder] = useState(false);
   const [loadingPalas, setLoadingPalas] = useState(true);
   const [loadingNoticias, setLoadingNoticias] = useState(true);
+  const [loadingPadelgram, setLoadingPadelgram] = useState(true);
 
   useEffect(() => {
     async function loadData() {
@@ -32,106 +52,183 @@ export const HomePage: React.FC = () => {
       } finally {
         setLoadingNoticias(false);
       }
+
+      try {
+        const padelgramRes = await padelgramApi.getFeed(1, 4);
+        setPadelgramPosts(padelgramRes.items);
+      } catch (err) {
+        console.error('Error cargando Padelgram posts:', err);
+      } finally {
+        setLoadingPadelgram(false);
+      }
     }
 
     loadData();
   }, []);
 
+  const handleHeroSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (heroSearch.trim()) {
+      navigate(`/catalogo?search=${encodeURIComponent(heroSearch.trim())}`);
+    } else {
+      navigate('/catalogo');
+    }
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }} className="animate-fade-in">
-      {/* Hero Banner Deportivo Técnico */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '36px', width: '100%' }} className="animate-fade-in">
+      {/* Hero Banner Revista Deportiva Full-Width */}
       <section
         style={{
           position: 'relative',
-          padding: '40px 32px',
-          background: 'radial-gradient(ellipse at top right, rgba(82, 183, 136, 0.14) 0%, var(--bg-card) 65%)',
-          border: '1px solid var(--border-card-hover)',
+          padding: '48px 36px',
+          background: 'radial-gradient(ellipse at top right, rgba(37, 99, 235, 0.22) 0%, var(--bg-card) 70%)',
+          border: '1px solid var(--border-card)',
           borderRadius: 'var(--radius-lg)',
           boxShadow: 'var(--shadow-card-elevated)',
           overflow: 'hidden',
         }}
       >
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: '680px' }}>
+        <div style={{ position: 'relative', zIndex: 2, maxWidth: '780px' }}>
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              padding: '5px 14px',
+              padding: '6px 14px',
               borderRadius: 'var(--radius-full)',
-              background: 'rgba(82, 183, 136, 0.12)',
-              border: '1px solid rgba(82, 183, 136, 0.35)',
-              color: 'var(--color-primary-sage)',
+              background: 'rgba(37, 99, 235, 0.15)',
+              border: '1px solid var(--border-accent)',
+              color: 'var(--padel-court-blue-light)',
               fontSize: '0.75rem',
               fontWeight: 800,
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
-              marginBottom: '16px',
+              marginBottom: '18px',
             }}
           >
             <Sparkles size={14} />
-            <span>Enciclopedia Técnica & Comparador Oficial de Pádel</span>
+            <span>Palantica • La Enciclopedia Técnica y Sensorial del Pádel</span>
           </div>
 
           <h1
             style={{
-              fontSize: '2.4rem',
+              fontSize: '2.6rem',
               fontWeight: 900,
-              lineHeight: 1.15,
+              lineHeight: 1.12,
               letterSpacing: '-0.03em',
               marginBottom: '14px',
               color: 'var(--text-primary)',
             }}
           >
-            Descubrí la pala perfecta para tu estilo de juego.
+            Descubrí la pala ideal para tu personalidad en pista.
           </h1>
 
           <p
             style={{
-              fontSize: '0.96rem',
+              fontSize: '0.98rem',
               color: 'var(--text-secondary)',
-              lineHeight: 1.55,
+              lineHeight: 1.6,
               marginBottom: '28px',
+              maxWidth: '680px',
             }}
           >
-            Fichas técnicas sagradas, análisis de comportamiento térmico en pista, radar de atributos y motor de similitud vectorial para encontrar alternativas directas a cualquier pala del circuito.
+            Fichas técnicas sagradas, pirámide de construcción de materiales, acuerdos sensoriales apilados, comportamiento térmico y similitud vectorial entre palas del circuito.
           </p>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
-            <Link to="/catalogo" className="btn-primary">
-              <span>Explorar Catálogo</span>
-              <ArrowRight size={16} />
+          {/* Buscador Rápido Integrado en Hero */}
+          <form
+            onSubmit={handleHeroSearchSubmit}
+            style={{
+              display: 'flex',
+              gap: '10px',
+              maxWidth: '560px',
+              marginBottom: '24px',
+            }}
+          >
+            <div style={{ position: 'relative', flex: 1 }}>
+              <Search
+                size={18}
+                color="var(--text-muted)"
+                style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }}
+              />
+              <input
+                type="text"
+                placeholder="Buscar por modelo, carbono, goma o jugador pro..."
+                value={heroSearch}
+                onChange={(e) => setHeroSearch(e.target.value)}
+                className="input-field"
+                style={{
+                  paddingLeft: '44px',
+                  height: '46px',
+                  borderRadius: 'var(--radius-full)',
+                  fontSize: '0.90rem',
+                }}
+              />
+            </div>
+            <button
+              type="submit"
+              className="btn-primary"
+              style={{
+                padding: '0 24px',
+                height: '46px',
+                borderRadius: 'var(--radius-full)',
+                flexShrink: 0,
+              }}
+            >
+              <span>Buscar</span>
+              <ArrowRight size={15} />
+            </button>
+          </form>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+            <button
+              type="button"
+              onClick={() => setShowFinder(true)}
+              className="btn-primary"
+              style={{ borderRadius: '0px', padding: '11px 20px' }}
+            >
+              <Sparkles size={16} />
+              <span>Pala Finder • Quiz Sensorial</span>
+            </button>
+            <Link to="/comparador" className="btn-secondary" style={{ borderRadius: '0px', padding: '11px 18px' }}>
+              <ArrowLeftRight size={16} />
+              <span>Comparador A/B</span>
             </Link>
-            <Link to="/padelgram" className="btn-secondary">
+            <Link to="/catalogo" className="btn-secondary" style={{ borderRadius: '0px', padding: '11px 18px' }}>
               <Compass size={16} />
-              <span>Ver Padelgram</span>
+              <span>Ver Catálogo</span>
+            </Link>
+            <Link to="/padelgram" className="btn-secondary" style={{ borderRadius: '0px', padding: '11px 18px' }}>
+              <Camera size={16} />
+              <span>Muro Padelgram</span>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Sección Noticias de Pádel */}
+      {/* Sección 1: Noticias & Análisis Técnico de Material (Fotografía Auténtica) */}
       <section>
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '16px',
+            marginBottom: '18px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Newspaper size={20} color="var(--color-primary-sage)" />
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Actualidad & Noticias</h2>
+            <Newspaper size={20} color="var(--padel-court-blue-vibrant)" />
+            <h2 style={{ fontSize: '1.45rem', fontWeight: 800 }}>Actualidad & Análisis de Laboratorio</h2>
           </div>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Padel Tech Feed</span>
         </div>
 
         {loadingNoticias ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="card-skeuomorphic" style={{ padding: '16px' }}>
-                <Skeleton height="140px" borderRadius="var(--radius-sm)" style={{ marginBottom: '12px' }} />
+                <Skeleton height="150px" borderRadius="var(--radius-sm)" style={{ marginBottom: '12px' }} />
                 <Skeleton width="40%" height="16px" style={{ marginBottom: '8px' }} />
                 <Skeleton width="90%" height="20px" style={{ marginBottom: '8px' }} />
                 <Skeleton width="100%" height="14px" />
@@ -139,7 +236,7 @@ export const HomePage: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
             {noticias.map((item) => (
               <article
                 key={item.id}
@@ -153,10 +250,11 @@ export const HomePage: React.FC = () => {
                 {item.imagenUrl && (
                   <div
                     style={{
-                      height: '140px',
+                      height: '160px',
                       borderRadius: 'var(--radius-sm)',
                       overflow: 'hidden',
                       marginBottom: '12px',
+                      border: '1px solid var(--border-subtle)',
                     }}
                   >
                     <img
@@ -167,18 +265,18 @@ export const HomePage: React.FC = () => {
                     />
                   </div>
                 )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <span className="badge badge-sage" style={{ fontSize: '0.65rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span className="badge badge-steel" style={{ fontSize: '0.68rem' }}>
                     {item.categoria}
                   </span>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                  <span style={{ fontSize: '0.70rem', color: 'var(--text-muted)' }}>
                     {item.tiempoLecturaMinutos} min lectura
                   </span>
                 </div>
                 <h3
                   style={{
-                    fontSize: '1rem',
-                    fontWeight: 700,
+                    fontSize: '1.05rem',
+                    fontWeight: 800,
                     lineHeight: 1.35,
                     color: 'var(--text-primary)',
                     marginBottom: '8px',
@@ -188,11 +286,11 @@ export const HomePage: React.FC = () => {
                 </h3>
                 <p
                   style={{
-                    fontSize: '0.8rem',
+                    fontSize: '0.82rem',
                     color: 'var(--text-secondary)',
-                    lineHeight: 1.45,
+                    lineHeight: 1.5,
                     flex: 1,
-                    marginBottom: '12px',
+                    marginBottom: '14px',
                   }}
                 >
                   {item.resumen}
@@ -203,10 +301,10 @@ export const HomePage: React.FC = () => {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     borderTop: '1px solid var(--border-subtle)',
-                    paddingTop: '8px',
+                    paddingTop: '10px',
                   }}
                 >
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{item.fuente}</span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{item.fuente}</span>
                   {item.urlFuente && (
                     <a
                       href={item.urlFuente}
@@ -216,12 +314,12 @@ export const HomePage: React.FC = () => {
                         display: 'flex',
                         alignItems: 'center',
                         gap: '4px',
-                        fontSize: '0.75rem',
+                        fontSize: '0.76rem',
                         fontWeight: 700,
-                        color: 'var(--color-primary-sage)',
+                        color: 'var(--padel-court-blue-vibrant)',
                       }}
                     >
-                      <span>Leer</span>
+                      <span>Leer artículo</span>
                       <ChevronRight size={14} />
                     </a>
                   )}
@@ -232,19 +330,19 @@ export const HomePage: React.FC = () => {
         )}
       </section>
 
-      {/* Sección Palas Mejor Puntuadas */}
+      {/* Sección 2: Palas Más Valoradas por la Comunidad */}
       <section>
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '16px',
+            marginBottom: '18px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Flame size={20} color="var(--color-accent-amber)" />
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Palas Más Valoradas</h2>
+            <Flame size={20} color="var(--padel-amber-rating)" />
+            <h2 style={{ fontSize: '1.45rem', fontWeight: 800 }}>Palas Más Valoradas</h2>
           </div>
           <Link
             to="/catalogo"
@@ -252,7 +350,7 @@ export const HomePage: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
-              color: 'var(--color-primary-sage)',
+              color: 'var(--padel-court-blue-vibrant)',
               fontSize: '0.85rem',
               fontWeight: 700,
             }}
@@ -263,13 +361,13 @@ export const HomePage: React.FC = () => {
         </div>
 
         {loadingPalas ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
             {Array.from({ length: 4 }).map((_, i) => (
               <PalaCardSkeleton key={i} />
             ))}
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
             {palasDestacadas.map((pala) => (
               <PalaCard key={pala.id} pala={pala} />
             ))}
@@ -277,31 +375,128 @@ export const HomePage: React.FC = () => {
         )}
       </section>
 
-      {/* Callout de Mi Paletero */}
+      {/* Sección 3: Muro Padelgram en Pista (Social Feed) */}
+      {padelgramPosts.length > 0 && (
+        <section>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '18px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Camera size={20} color="var(--padel-turf-green)" />
+              <h2 style={{ fontSize: '1.45rem', fontWeight: 800 }}>Padelgram: La Comunidad en Pista</h2>
+            </div>
+            <Link
+              to="/padelgram"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                color: 'var(--padel-turf-green)',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+              }}
+            >
+              <span>Explorar Padelgram</span>
+              <ChevronRight size={16} />
+            </Link>
+          </div>
+
+          {loadingPadelgram ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="card-skeuomorphic" style={{ padding: '12px' }}>
+                  <Skeleton height="180px" borderRadius="var(--radius-sm)" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
+              {padelgramPosts.map((post) => (
+              <div
+                key={post.id}
+                className="card-skeuomorphic"
+                style={{
+                  padding: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                }}
+              >
+                <div
+                  style={{
+                    height: '180px',
+                    borderRadius: 'var(--radius-sm)',
+                    overflow: 'hidden',
+                    position: 'relative',
+                  }}
+                >
+                  <img
+                    src={post.imagenUrl}
+                    alt={post.palaModelo}
+                    loading="lazy"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      padding: '6px 10px',
+                      background: 'linear-gradient(transparent, rgba(10, 17, 40, 0.9))',
+                      color: '#FFFFFF',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                    }}
+                  >
+                    @{post.usuarioNombre} • {post.palaModelo}
+                  </div>
+                </div>
+
+                {post.descripcion && (
+                  <p style={{ fontSize: '0.80rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                    "{post.descripcion}"
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    )}
+
+      {/* Sección 4: Callout de Mi Paletero Digital */}
       <section
         className="card-skeuomorphic"
         style={{
-          padding: '24px 28px',
+          padding: '28px 32px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '12px',
-          borderLeft: '4px solid var(--color-primary-sage)',
+          gap: '14px',
+          borderLeft: '5px solid var(--padel-turf-green)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <ShieldCheck size={24} color="var(--color-primary-sage)" />
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Armá tu Paletero Digital</h3>
+          <ShieldCheck size={26} color="var(--padel-turf-green)" />
+          <h3 style={{ fontSize: '1.35rem', fontWeight: 800 }}>Armá tu Paletero Digital</h3>
         </div>
-        <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.5, maxWidth: '720px' }}>
-          Registrá la pala con la que competís actualmente, guardá tus palas de reserva y creá tu lista de deseos con notas técnicas personalizadas y comparativas directas.
+        <p style={{ fontSize: '0.90rem', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '780px' }}>
+          Registrá tu pala titular de competición, organizá tus reservas en el paletero y construí tu lista de deseos con notas técnicas personalizadas, telemetría de rendimiento y comparativa instantánea.
         </p>
-        <div style={{ marginTop: '4px' }}>
-          <Link to="/paletero" className="btn-primary" style={{ padding: '9px 20px', fontSize: '0.88rem' }}>
+        <div style={{ marginTop: '6px' }}>
+          <Link to="/paletero" className="btn-primary" style={{ padding: '10px 22px', fontSize: '0.90rem', borderRadius: '0px' }}>
             <Award size={16} />
             <span>Gestionar Mi Paletero</span>
           </Link>
         </div>
       </section>
+
+      <PalaFinderModal isOpen={showFinder} onClose={() => setShowFinder(false)} />
     </div>
   );
 };

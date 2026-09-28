@@ -83,17 +83,17 @@ export const PalaCard: React.FC<PalaCardProps> = ({ pala }) => {
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
-              background: 'rgba(11, 15, 23, 0.85)',
+              background: 'var(--bg-glass-card)',
               backdropFilter: 'blur(8px)',
               padding: '4px 8px',
               borderRadius: 'var(--radius-full)',
-              color: 'var(--color-accent-amber)',
+              color: 'var(--padel-amber-rating)',
               fontSize: '0.80rem',
               fontWeight: 800,
               border: '1px solid var(--border-subtle)',
             }}
           >
-            <Star size={12} fill="var(--color-accent-amber)" />
+            <Star size={12} fill="var(--padel-amber-rating)" />
             <span>{pala.puntuacionGeneral.toFixed(1)}</span>
           </div>
         </div>
@@ -131,7 +131,7 @@ export const PalaCard: React.FC<PalaCardProps> = ({ pala }) => {
         </h3>
 
         {pala.jugadorPro ? (
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-primary-sage)', fontWeight: 600, marginTop: '2px' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--padel-turf-green)', fontWeight: 600, marginTop: '2px' }}>
             Empuñada por {pala.jugadorPro}
           </span>
         ) : (
@@ -140,7 +140,7 @@ export const PalaCard: React.FC<PalaCardProps> = ({ pala }) => {
           </span>
         )}
 
-        {/* Especificación de Materiales de Caras y Núcleo */}
+        {/* Especificación de Materiales de Caras y Núcleo (Reemplaza la dureza y precio) */}
         <div
           style={{
             marginTop: '12px',
@@ -155,7 +155,7 @@ export const PalaCard: React.FC<PalaCardProps> = ({ pala }) => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '7px', overflow: 'hidden' }}>
-            <Layers size={13} color="var(--color-accent-steel)" style={{ flexShrink: 0 }} />
+            <Layers size={13} color="var(--padel-court-blue-light)" style={{ flexShrink: 0 }} />
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
               Caras:
             </span>
@@ -173,7 +173,7 @@ export const PalaCard: React.FC<PalaCardProps> = ({ pala }) => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '7px', overflow: 'hidden' }}>
-            <Disc size={13} color="var(--color-primary-sage)" style={{ flexShrink: 0 }} />
+            <Disc size={13} color="var(--padel-turf-green)" style={{ flexShrink: 0 }} />
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
               Núcleo:
             </span>
@@ -191,7 +191,7 @@ export const PalaCard: React.FC<PalaCardProps> = ({ pala }) => {
           </div>
         </div>
 
-        {/* Métricas Rápidas y Footer */}
+        {/* Métricas Rápidas y Footer (CERO precio) */}
         <div
           style={{
             display: 'flex',
@@ -204,12 +204,12 @@ export const PalaCard: React.FC<PalaCardProps> = ({ pala }) => {
         >
           <div style={{ display: 'flex', gap: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem' }}>
-              <Zap size={12} color="var(--color-primary-sage)" />
+              <Zap size={12} color="var(--accord-potencia)" />
               <span style={{ color: 'var(--text-muted)' }}>Pot:</span>
               <strong>{pala.potenciaPromedio.toFixed(1)}</strong>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem' }}>
-              <Shield size={12} color="var(--color-accent-steel)" />
+              <Shield size={12} color="var(--accord-control)" />
               <span style={{ color: 'var(--text-muted)' }}>Ctrl:</span>
               <strong>{pala.controlPromedio.toFixed(1)}</strong>
             </div>

@@ -96,6 +96,8 @@ public sealed record PalaSimilarResponse(
     string MarcaNombre,
     string Modelo,
     string Forma,
+    string MaterialCaras,
+    string MaterialNucleo,
     string? ImagenUrl,
     decimal PrecioReferencia,
     string MonedaPrecio,

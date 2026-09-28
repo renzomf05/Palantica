@@ -262,9 +262,12 @@ export const PadelgramPage: React.FC = () => {
         >
           <div className="card-skeuomorphic animate-slide-up" style={{ width: '100%', maxWidth: '460px', padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>
-                Nueva Foto en Padelgram 📸
-              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Camera size={20} color="var(--padel-court-blue-vibrant)" />
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>
+                  Nueva Foto en Padelgram
+                </h3>
+              </div>
               <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                 <X size={20} />
               </button>

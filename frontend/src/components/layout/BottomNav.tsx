@@ -1,11 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Compass, Camera, Briefcase, User } from 'lucide-react';
+import { Home, Compass, ArrowLeftRight, Camera, Briefcase, User } from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
   const navItems = [
     { label: 'Inicio', path: '/', icon: Home },
     { label: 'Catálogo', path: '/catalogo', icon: Compass },
+    { label: 'Comparar', path: '/comparador', icon: ArrowLeftRight },
     { label: 'Padelgram', path: '/padelgram', icon: Camera },
     { label: 'Paletero', path: '/paletero', icon: Briefcase },
     { label: 'Perfil', path: '/perfil', icon: User },

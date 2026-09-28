@@ -89,7 +89,7 @@ export const PerfilPage: React.FC = () => {
               justifyContent: 'center',
               fontWeight: 900,
               fontSize: '1.8rem',
-              fontFamily: 'Outfit, sans-serif',
+              fontFamily: 'var(--font-serif)',
               boxShadow: '0 4px 16px var(--color-primary-sage-glow)',
               border: '2px solid rgba(255, 255, 255, 0.2)',
             }}

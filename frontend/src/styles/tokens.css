@@ -1,103 +1,140 @@
 :root {
   /* ==========================================================
-     PALANTICA DESIGN SYSTEM: SOBER, ELEGANT SKEUOMORPHISM
-     Midnight Slate, Titanium Steel, Refined Sage, Warm Crema
+     PALANTICA DESIGN SYSTEM: PADEL CIRCUIT & SENSORIAL MATRIX
+     High-Viz Volt, Stadium Deep Blue, Court Turf Green, Off-White Crema
      ========================================================== */
 
-  /* Colores de Acento Sobrios */
-  --color-primary-sage: #52B788;
-  --color-primary-sage-glow: rgba(82, 183, 136, 0.25);
-  --color-primary-sage-dim: #2D6A4F;
+  /* Colores Oficiales del Circuito de Pádel */
+  --padel-court-blue: #1D4ED8;          /* Azul Cancha Central WPT / Premier Padel */
+  --padel-court-blue-vibrant: #2563EB;
+  --padel-court-blue-light: #38BDF8;
+  --padel-court-blue-glow: rgba(37, 99, 235, 0.25);
 
-  --color-accent-steel: #3B82F6;
-  --color-accent-steel-glow: rgba(59, 130, 246, 0.25);
+  --padel-ball-yellow: #D9F99D;         /* Lima / Amarillo Pelota Óptico */
+  --padel-ball-yellow-vibrant: #A3E635; /* High-Viz Volt #CCFF00 spirit */
+  --padel-ball-yellow-dim: #65A30D;
+  --padel-ball-yellow-glow: rgba(163, 230, 53, 0.28);
+
+  --padel-turf-green: #10B981;          /* Verde Césped Pista */
+  --padel-turf-green-dim: #047857;
+  --padel-turf-green-glow: rgba(16, 185, 129, 0.22);
+
+  --padel-clay-terracotta: #EA580C;     /* Arcilla / Detalle de Tierra */
+  --padel-amber-rating: #F59E0B;        /* Estrellas y Puntuaciones */
+
+  /* Sensaciones en Pista (Acordes de Rendimiento) */
+  --accord-potencia: #EF4444;           /* Carmesí / Potencia Ofensiva */
+  --accord-control: #2563EB;            /* Azul Cancha / Control & Precisión */
+  --accord-salida: #84CC16;             /* Lima / Salida de Bola Rápida */
+  --accord-confort: #10B981;            /* Verde Césped / Confort de Brazo */
+  --accord-maniobra: #06B6D4;           /* Cian / Maniobrabilidad en Red */
+  --accord-puntodulce: #F59E0B;         /* Ámbar / Punto Dulce Amplio */
+
+  /* Alias de Compatibilidad para el Sistema de Componentes */
+  --color-primary-sage: #10B981;
+  --color-primary-sage-glow: rgba(16, 185, 129, 0.25);
+  --color-primary-sage-dim: #047857;
+
+  --color-accent-steel: #2563EB;
+  --color-accent-steel-glow: rgba(37, 99, 235, 0.25);
   --color-accent-steel-dim: #1D4ED8;
 
   --color-accent-amber: #F59E0B;
   --color-accent-amber-glow: rgba(245, 158, 11, 0.25);
 
-  --color-accent-terracotta: #E07A5F;
+  --color-accent-terracotta: #EA580C;
 
-  /* Superficies y Fondos en Modo Oscuro (Midnight Slate) */
-  --bg-deep: #0B0F17;
-  --bg-surface: #111726;
-  --bg-card: #161F32;
-  --bg-card-hover: #1D2A42;
-  --bg-card-elevated: #22324E;
-  --bg-glass: rgba(17, 23, 38, 0.85);
-  --bg-glass-card: rgba(22, 31, 50, 0.75);
-  --bg-input: #0E1420;
+  /* Tipografía - Inter + Stylish Times / Playfair */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: 'Times New Roman', 'Times', 'Playfair Display', Georgia, serif;
+  --font-display: var(--font-serif);
+  --font-body: var(--font-sans);
 
-  /* Bordes y Biseles Skeuomórficos */
-  --border-subtle: rgba(255, 255, 255, 0.07);
-  --border-card: rgba(255, 255, 255, 0.10);
-  --border-card-hover: rgba(82, 183, 136, 0.40);
-  --border-steel-highlight: rgba(59, 130, 246, 0.35);
-  --border-bevel-light: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  --border-bevel-dark: inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+  /* Geometría y Elevación (Sharp Minimal 0px Squares - Zero Squircles) */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-full: 0px;
 
-  /* Sombras y Volumen Físico */
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  --shadow-card-elevated: 0 12px 36px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  --shadow-btn-primary: 0 4px 14px rgba(82, 183, 136, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 0 #1E4634;
-  --shadow-btn-secondary: 0 3px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(0, 0, 0, 0.5);
-  --shadow-btn-pressed: 0 1px 3px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(0, 0, 0, 0.3);
-
-  /* Tipografía y Textos */
-  --text-primary: #F1F5F9;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
-  --text-inverse: #0B0F17;
-
-  /* Radios y Espaciados */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-full: 9999px;
-
+  --header-height: 70px;
   --nav-height: 64px;
-  --header-height: 68px;
 }
 
 /* ==========================================================
-   MODO CLARO: Off-White & Crema Cálido Elegante
+   MODO OSCURO: PÁDEL NOCTURNO BAJO LOS FOCOS (CON ESPÍRITU)
+   Azul medianoche profundo de estadio (cero negro plano #000)
+   ========================================================== */
+[data-theme="dark"] {
+  --bg-deep: #0A1128;               /* Azul medianoche profundo de estadio */
+  --bg-surface: #101B38;            /* Superficie azul pizarra deportiva */
+  --bg-card: #152248;               /* Card azul cancha enriquecido */
+  --bg-card-hover: #1C2D5C;         /* Elevación interactiva */
+  --bg-card-elevated: #203162;
+  --bg-input: #0D1630;              /* Fondo de inputs y nichos de datos */
+  --bg-glass: rgba(16, 27, 56, 0.88);
+  --bg-glass-card: rgba(21, 34, 72, 0.85);
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-card: rgba(56, 189, 248, 0.14);
+  --border-card-hover: rgba(163, 230, 53, 0.50); /* Resaltado Lima Volt al hover */
+  --border-steel-highlight: rgba(56, 189, 248, 0.35);
+  --border-bevel-light: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  --border-bevel-dark: inset 0 -1px 0 rgba(0, 0, 0, 0.45);
+
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --shadow-card-elevated: 0 12px 34px rgba(0, 0, 0, 0.55), 0 0 20px var(--padel-court-blue-glow);
+  --shadow-btn-primary: 0 4px 14px var(--padel-ball-yellow-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 0 #047857;
+  --shadow-btn-secondary: 0 3px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(0, 0, 0, 0.5);
+  --shadow-btn-pressed: 0 1px 3px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(0, 0, 0, 0.3);
+
+  --text-primary: #F8FAFC;          /* Blanco nítido de alta legibilidad */
+  --text-secondary: #94A3B8;        /* Pizarra claro */
+  --text-muted: #64748B;            /* Texto atenuado */
+  --text-inverse: #0A1128;
+}
+
+/* ==========================================================
+   MODO CLARO: CREMA / OFF-WHITE ENCICLOPÉDICO ELEGANTE
+   Papel pergamino cálido de alta fidelidad (cero blanco #FFF puro en cards)
    ========================================================== */
 [data-theme="light"] {
-  --color-primary-sage: #2D6A4F;
-  --color-primary-sage-glow: rgba(45, 106, 79, 0.15);
-  --color-primary-sage-dim: #1B4332;
+  --color-primary-sage: #047857;
+  --color-primary-sage-glow: rgba(4, 120, 87, 0.18);
+  --color-primary-sage-dim: #064E3B;
 
-  --color-accent-steel: #2563EB;
-  --color-accent-steel-glow: rgba(37, 99, 235, 0.15);
-  --color-accent-steel-dim: #1D4ED8;
+  --color-accent-steel: #1D4ED8;
+  --color-accent-steel-glow: rgba(29, 78, 216, 0.18);
+  --color-accent-steel-dim: #1E40AF;
 
   --color-accent-amber: #D97706;
-  --color-accent-amber-glow: rgba(217, 119, 6, 0.15);
+  --color-accent-amber-glow: rgba(217, 119, 6, 0.18);
 
-  --bg-deep: #F8F6F0;
-  --bg-surface: #FFFFFF;
-  --bg-card: #FFFFFF;
-  --bg-card-hover: #F2EFE8;
-  --bg-card-elevated: #FFFFFF;
-  --bg-glass: rgba(248, 246, 240, 0.90);
-  --bg-glass-card: rgba(255, 255, 255, 0.90);
-  --bg-input: #EFECE4;
+  --bg-deep: #F4F1EA;               /* Crema pergamino cálido de fondo */
+  --bg-surface: #FAF8F5;            /* Off-white cálido para superficies */
+  --bg-card: #FAF8F5;               /* Tarjetas sin blanco puro deslumbrante */
+  --bg-card-hover: #EFECE1;         /* Hover cálido y táctil */
+  --bg-card-elevated: #FAF8F5;
+  --bg-glass: rgba(244, 241, 234, 0.94);
+  --bg-glass-card: rgba(250, 248, 245, 0.92);
+  --bg-input: #EBE6DA;              /* Fondo suave de campos y tablas técnicas */
 
-  --border-subtle: rgba(0, 0, 0, 0.06);
-  --border-card: rgba(0, 0, 0, 0.09);
-  --border-card-hover: rgba(45, 106, 79, 0.40);
-  --border-steel-highlight: rgba(37, 99, 235, 0.30);
-  --border-bevel-light: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  --border-bevel-dark: inset 0 -1px 0 rgba(0, 0, 0, 0.06);
+  --border-subtle: rgba(0, 0, 0, 0.07);
+  --border-card: #DDD7C9;           /* Borde cálido de papel enciclopédico */
+  --border-card-hover: var(--padel-court-blue-vibrant);
+  --border-steel-highlight: rgba(37, 99, 235, 0.35);
+  --border-bevel-light: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --border-bevel-dark: inset 0 -1px 0 rgba(0, 0, 0, 0.08);
 
-  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  --shadow-card-elevated: 0 10px 28px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.95);
-  --shadow-btn-primary: 0 3px 12px rgba(45, 106, 79, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 0 #1B4332;
-  --shadow-btn-secondary: 0 2px 8px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 0 #D5D0C6;
+  --shadow-card: 0 3px 14px rgba(45, 55, 72, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --shadow-card-elevated: 0 10px 28px rgba(45, 55, 72, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --shadow-btn-primary: 0 4px 14px rgba(4, 120, 87, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 0 #064E3B;
+  --shadow-btn-secondary: 0 2px 8px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 0 #D0C9B8;
   --shadow-btn-pressed: 0 1px 2px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.08);
 
-  --text-primary: #1E293B;
-  --text-secondary: #475569;
-  --text-muted: #94A3B8;
-  --text-inverse: #FFFFFF;
+  --text-primary: #1E293B;          /* Tinta pizarra oscura de alta legibilidad */
+  --text-secondary: #475569;        /* Tinta media */
+  --text-muted: #7E8C9F;            /* Tinta atenuada */
+  --text-inverse: #FAF8F5;
 }

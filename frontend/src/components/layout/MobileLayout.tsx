@@ -17,9 +17,11 @@ export const MobileLayout: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <div className="app-container">
+    <div style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header theme={theme} toggleTheme={toggleTheme} />
-      <main className="main-content">{children}</main>
+      <div className="app-container">
+        <main className="main-content">{children}</main>
+      </div>
       <BottomNav />
     </div>
   );

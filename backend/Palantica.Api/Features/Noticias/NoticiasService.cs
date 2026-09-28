@@ -15,7 +15,7 @@ public sealed class NoticiasService
             Categoria: "Material y Análisis",
             Fuente: "Palantica Tech Lab",
             UrlFuente: "https://noxsport.es",
-            ImagenUrl: "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&auto=format&fit=crop&q=80",
+            ImagenUrl: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&auto=format&fit=crop&q=80",
             FechaPublicacion: DateTimeOffset.UtcNow.AddHours(-3),
             TiempoLecturaMinutos: 4,
             Tags: new[] { "Nox", "Agustín Tapia", "AT10", "Carbono 18K" }
@@ -28,7 +28,7 @@ public sealed class NoticiasService
             Categoria: "Física y Rendimiento",
             Fuente: "Padel Intelligence",
             UrlFuente: "https://padelmagazine.fr",
-            ImagenUrl: "https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=800&auto=format&fit=crop&q=80",
+            ImagenUrl: "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?w=800&auto=format&fit=crop&q=80",
             FechaPublicacion: DateTimeOffset.UtcNow.AddHours(-12),
             TiempoLecturaMinutos: 6,
             Tags: new[] { "Dureza", "Verano", "Termodinámica", "EVA Hard" }
@@ -41,7 +41,7 @@ public sealed class NoticiasService
             Categoria: "Competición",
             Fuente: "Circuito Mundial",
             UrlFuente: "https://premierpadel.com",
-            ImagenUrl: "https://images.unsplash.com/photo-1622163642998-1ea32b0bbc67?w=800&auto=format&fit=crop&q=80",
+            ImagenUrl: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800&auto=format&fit=crop&q=80",
             FechaPublicacion: DateTimeOffset.UtcNow.AddDays(-1),
             TiempoLecturaMinutos: 5,
             Tags: new[] { "Premier Padel", "Estadísticas", "Diamante", "Balance" }
@@ -54,7 +54,7 @@ public sealed class NoticiasService
             Categoria: "Tecnología",
             Fuente: "Palantica Lab",
             UrlFuente: "https://bullpadel.com",
-            ImagenUrl: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop&q=80",
+            ImagenUrl: "https://images.unsplash.com/photo-1563299796-17596ed6b017?w=800&auto=format&fit=crop&q=80",
             FechaPublicacion: DateTimeOffset.UtcNow.AddDays(-2),
             TiempoLecturaMinutos: 4,
             Tags: new[] { "Rugoso 3D", "Arenado", "Efecto", "Durabilidad" }
