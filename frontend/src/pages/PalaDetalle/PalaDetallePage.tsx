@@ -73,7 +73,7 @@ export const PalaDetallePage: React.FC = () => {
   const [paleteroNotas, setPaleteroNotas] = useState('');
   const [paleteroSuccess, setPaleteroSuccess] = useState(false);
 
-  const cargarDatos = async () => {
+  const cargarDatos = React.useCallback(async () => {
     if (!palaId) return;
     try {
       const palaData = await palasApi.getPalaDetalle(palaId);
@@ -107,14 +107,15 @@ export const PalaDetallePage: React.FC = () => {
     } catch (err) {
       console.error('Error cargando Padelgram reel:', err);
     }
-  };
+  }, [palaId]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    setLoading(true);
-    setLoadingResenas(true);
-    cargarDatos();
-  }, [palaId]);
+    const timer = setTimeout(() => {
+      cargarDatos();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [cargarDatos]);
 
   const handlePublicarResena = async (e: React.FormEvent) => {
     e.preventDefault();

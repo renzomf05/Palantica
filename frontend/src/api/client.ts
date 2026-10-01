@@ -10,9 +10,9 @@ interface RequestOptions extends RequestInit {
 
 export class ApiError extends Error {
   public status: number;
-  public problemDetails?: any;
+  public problemDetails?: unknown;
 
-  constructor(status: number, message: string, problemDetails?: any) {
+  constructor(status: number, message: string, problemDetails?: unknown) {
     super(message);
     this.name = 'ApiError';
     this.status = status;

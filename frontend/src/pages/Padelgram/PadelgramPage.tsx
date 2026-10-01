@@ -23,7 +23,7 @@ export const PadelgramPage: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
 
-  const cargarFeed = async () => {
+  const cargarFeed = React.useCallback(async () => {
     try {
       const response = await padelgramApi.getFeed(1, 24);
       setPosts(response.items);
@@ -32,10 +32,12 @@ export const PadelgramPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    cargarFeed();
+    const timer = setTimeout(() => {
+      cargarFeed();
+    }, 0);
     async function loadPalasSelector() {
       try {
         const res = await palasApi.getPalas({ pageSize: 50 });
@@ -46,7 +48,8 @@ export const PadelgramPage: React.FC = () => {
       }
     }
     loadPalasSelector();
-  }, []);
+    return () => clearTimeout(timer);
+  }, [cargarFeed]);
 
   const handleLike = async (postId: number) => {
     if (likedPosts.has(postId)) return;

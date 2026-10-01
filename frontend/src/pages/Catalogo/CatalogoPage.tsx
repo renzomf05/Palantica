@@ -50,13 +50,16 @@ export const CatalogoPage: React.FC = () => {
   const [shopifySyncing, setShopifySyncing] = useState(false);
   const [shopifySuccessMsg, setShopifySuccessMsg] = useState<string | null>(null);
 
-  // Sincronizar parámetro de búsqueda de la URL (ej: si viene desde el buscador del Header)
+  // Sincronizar parámetro de búsqueda de la URL
   useEffect(() => {
     if (urlSearch !== search) {
-      setSearch(urlSearch);
-      setPage(1);
+      const timer = setTimeout(() => {
+        setSearch(urlSearch);
+        setPage(1);
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [urlSearch]);
+  }, [urlSearch, search]);
 
   // Cargar marcas iniciales
   useEffect(() => {
@@ -72,7 +75,7 @@ export const CatalogoPage: React.FC = () => {
   }, []);
 
   // Cargar palas
-  const loadPalas = async () => {
+  const loadPalas = React.useCallback(async () => {
     setLoading(true);
     try {
       const filterParams: PalaFilterParams = {
@@ -95,14 +98,14 @@ export const CatalogoPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [search, selectedMarca, selectedForma, selectedEstacion, durezaMin, orderBy, page]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       loadPalas();
     }, 200);
     return () => clearTimeout(timer);
-  }, [search, selectedMarca, selectedForma, selectedEstacion, durezaMin, orderBy, page]);
+  }, [loadPalas]);
 
   const resetFilters = () => {
     setSearch('');

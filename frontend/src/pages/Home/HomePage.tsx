@@ -1,502 +1,596 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { palasApi } from '../../api/palas';
-import { noticiasApi } from '../../api/noticias';
 import { padelgramApi } from '../../api/padelgram';
-import type { Pala, Noticia, PadelgramPost } from '../../types';
-import { PalaCard } from '../../components/ui/PalaCard';
-import { PalaCardSkeleton, Skeleton } from '../../components/ui/Skeleton';
-import { PalaFinderModal } from '../../components/palas/PalaFinderModal';
+import { Carousel } from '../../components/ui/Carousel';
+import { useFitText } from '../../hooks/useFitText';
+import type { Pala, CarouselCardItem, PadelgramPost } from '../../types';
 import {
-  ArrowRight,
-  ArrowLeftRight,
-  Flame,
-  Newspaper,
   Sparkles,
+  Star,
+  Layers,
+  ArrowUpRight,
   ChevronRight,
-  Award,
-  Compass,
-  ShieldCheck,
-  Camera,
-  Search
+  Radio
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [filtroComunidad, setFiltroComunidad] = useState<string>('SEMANA');
 
-  const [palasDestacadas, setPalasDestacadas] = useState<Pala[]>([]);
-  const [noticias, setNoticias] = useState<Noticia[]>([]);
-  const [padelgramPosts, setPadelgramPosts] = useState<PadelgramPost[]>([]);
-  const [heroSearch, setHeroSearch] = useState('');
-  const [showFinder, setShowFinder] = useState(false);
-  const [loadingPalas, setLoadingPalas] = useState(true);
-  const [loadingNoticias, setLoadingNoticias] = useState(true);
-  const [loadingPadelgram, setLoadingPadelgram] = useState(true);
+  // Datos para los 4 carruseles
+  const [paletasNuevas, setPaletasNuevas] = useState<CarouselCardItem[]>([]);
+  const [deLaComunidad, setDeLaComunidad] = useState<CarouselCardItem[]>([]);
+  const [nuevosLanzamientos, setNuevosLanzamientos] = useState<CarouselCardItem[]>([]);
+  const [catalogoReciente, setCatalogoReciente] = useState<CarouselCardItem[]>([]);
+
+  // Hook para titular adaptativo gigante Swiss
+  const { ref: heroTitleRef } = useFitText<HTMLHeadingElement>({
+    minFontSize: 24,
+    maxFontSize: 46,
+  });
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const palasRes = await palasApi.getPalas({ pageSize: 4, orderBy: 'puntuacion' });
-        setPalasDestacadas(palasRes.items);
-      } catch (err) {
-        console.error('Error cargando palas destacadas:', err);
-      } finally {
-        setLoadingPalas(false);
-      }
+    let isMounted = true;
 
+    async function loadAllSections() {
+      setLoading(true);
       try {
-        const noticiasRes = await noticiasApi.getNoticias(4);
-        setNoticias(noticiasRes);
-      } catch (err) {
-        console.error('Error cargando noticias:', err);
-      } finally {
-        setLoadingNoticias(false);
-      }
+        // Cargar palas desde la API
+        const palasRes = await palasApi.getPalas({ pageSize: 12, orderBy: 'novedad' });
+        const palas = palasRes.items || [];
 
-      try {
-        const padelgramRes = await padelgramApi.getFeed(1, 4);
-        setPadelgramPosts(padelgramRes.items);
+        // 1. Carrusel: Paletas nuevas (Noticias y presentaciones)
+        const mockPaletasNuevas: CarouselCardItem[] = [
+          {
+            id: 'n1',
+            titulo: 'Bullpadel Vertex 04 2026: Nueva geometría de marco y balance reactivo',
+            subtitulo: 'Análisis Técnico',
+            etiqueta: 'PALETA NUEVA',
+            imagenUrl:
+              'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=800&q=80',
+            linkTo: palas[0] ? `/paletas/${palas[0].id}` : '/paletas',
+            autor: { nombre: 'Redacción Palantica' },
+            rating: 9.6,
+            fecha: 'Hoy',
+          },
+          {
+            id: 'n2',
+            titulo: 'Nox AT10 Luxury Genius 18K Alum: La evolución de Agustín Tapia',
+            subtitulo: 'Review a Fondo',
+            etiqueta: 'PALETA NUEVA',
+            imagenUrl:
+              'https://images.unsplash.com/photo-1599586120429-48281b6f0ece?auto=format&fit=crop&w=800&q=80',
+            linkTo: palas[1] ? `/paletas/${palas[1].id}` : '/paletas',
+            autor: { nombre: 'Martín Di Nenno' },
+            rating: 9.8,
+            fecha: 'Ayer',
+          },
+          {
+            id: 'n3',
+            titulo: 'Babolat Technical Viper Juan Lebrón: Potencia extrema sin concesiones',
+            subtitulo: 'Test de Potencia',
+            etiqueta: 'PALETA NUEVA',
+            imagenUrl:
+              'https://images.unsplash.com/photo-1544919982-b61976f0ba43?auto=format&fit=crop&w=800&q=80',
+            linkTo: palas[2] ? `/paletas/${palas[2].id}` : '/paletas',
+            autor: { nombre: 'Laboratorio Pádel' },
+            rating: 9.4,
+            fecha: 'Hace 3 días',
+          },
+          {
+            id: 'n4',
+            titulo: 'Head Extreme Pro 2026: El diamante con Auxetic 2.0 que domina el juego aéreo',
+            subtitulo: 'Novedades 2026',
+            etiqueta: 'PALETA NUEVA',
+            imagenUrl:
+              'https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=800&q=80',
+            linkTo: palas[3] ? `/paletas/${palas[3].id}` : '/paletas',
+            autor: { nombre: 'Guillermo Lahoz' },
+            rating: 9.2,
+            fecha: 'Hace 4 días',
+          },
+          {
+            id: 'n5',
+            titulo: 'Adidas Metalbone 3.3 HRD Ale Galán: Sistema de pesos personalizable',
+            subtitulo: 'Comparativa',
+            etiqueta: 'PALETA NUEVA',
+            imagenUrl:
+              'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=800&q=80',
+            linkTo: palas[4] ? `/paletas/${palas[4].id}` : '/paletas',
+            autor: { nombre: 'Pro Tour Lab' },
+            rating: 9.7,
+            fecha: 'Hace 1 sem',
+          },
+        ];
+
+        // 2. Carrusel: De la comunidad (Posts de usuarios)
+        let mockComunidad: CarouselCardItem[] = [];
+        try {
+          const feedRes = await padelgramApi.getFeed(1, 6);
+          if (feedRes.items && feedRes.items.length > 0) {
+            mockComunidad = feedRes.items.map((post: PadelgramPost) => ({
+              id: `com-${post.id}`,
+              titulo: post.descripcion || `Review comunitaria de ${post.palaModelo}`,
+              subtitulo: `${post.palaMarca} • ${post.palaModelo}`,
+              etiqueta: 'COMUNIDAD',
+              imagenUrl: post.imagenUrl,
+              linkTo: '/feed',
+              autor: {
+                nombre: post.usuarioNombre,
+                avatarUrl: post.usuarioAvatarUrl || undefined,
+              },
+              likes: post.likesCount || 14,
+              comentarios: 6,
+            }));
+          }
+        } catch {
+          // fallback
+        }
+
+        if (mockComunidad.length === 0) {
+          mockComunidad = [
+            {
+              id: 'c1',
+              titulo: '6 meses jugando con la Siux Electra ST3 de Stupa: Sensaciones reales',
+              subtitulo: 'Review Jugador de Revés',
+              etiqueta: 'COMUNIDAD',
+              imagenUrl:
+                'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=800&q=80',
+              linkTo: '/feed',
+              autor: {
+                nombre: 'Nico S.',
+                avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+              },
+              likes: 42,
+              comentarios: 18,
+            },
+            {
+              id: 'c2',
+              titulo: '¿Pala blanda en invierno o cambiar a una más dura? Mi experiencia en Madrid',
+              subtitulo: 'Debate Térmico',
+              etiqueta: 'COMUNIDAD',
+              imagenUrl:
+                'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=800&q=80',
+              linkTo: '/feed',
+              autor: {
+                nombre: 'Carla G.',
+                avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
+              },
+              likes: 78,
+              comentarios: 29,
+            },
+            {
+              id: 'c3',
+              titulo: 'Comparativa en pista: Vertex 04 vs Hack 03. Cuál perdona más el error',
+              subtitulo: 'Test de Punto Dulce',
+              etiqueta: 'COMUNIDAD',
+              imagenUrl:
+                'https://images.unsplash.com/photo-1599586120429-48281b6f0ece?auto=format&fit=crop&w=800&q=80',
+              linkTo: '/feed',
+              autor: {
+                nombre: 'Tomás R.',
+                avatarUrl: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=120&q=80',
+              },
+              likes: 56,
+              comentarios: 14,
+            },
+            {
+              id: 'c4',
+              titulo: 'Mi paletero 2026 listo para la liga interclubes. Palas, grips y zapatillas',
+              subtitulo: 'Equipamiento',
+              etiqueta: 'COMUNIDAD',
+              imagenUrl:
+                'https://images.unsplash.com/photo-1544919982-b61976f0ba43?auto=format&fit=crop&w=800&q=80',
+              linkTo: '/feed',
+              autor: {
+                nombre: 'Facu M.',
+                avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
+              },
+              likes: 91,
+              comentarios: 35,
+            },
+          ];
+        }
+
+        // 3. Carrusel: Nuevos lanzamientos oficiales de marcas
+        const mockNuevosLanzamientos: CarouselCardItem[] = [
+          {
+            id: 'l1',
+            titulo: 'Colección Nox Luxury 2026: Carbono Alum y núcleos Dual Density',
+            subtitulo: 'Nox Padel • Colección Completa',
+            etiqueta: 'LANZAMIENTO',
+            imagenUrl:
+              'https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=800&q=80',
+            linkTo: '/paletas?marca=Nox',
+            precio: 320,
+            fecha: 'Lanzamiento Oficial',
+          },
+          {
+            id: 'l2',
+            titulo: 'Siux Trilogy IV Control Patty Llaguno: Máxima salida en formato redondo',
+            subtitulo: 'Siux • Edición Profesional',
+            etiqueta: 'LANZAMIENTO',
+            imagenUrl:
+              'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=800&q=80',
+            linkTo: '/paletas?marca=Siux',
+            precio: 290,
+            fecha: 'Disponible Ya',
+          },
+          {
+            id: 'l3',
+            titulo: 'Wilson Bela Pro V2.5: La leyenda de Fernando Belasteguín en su máxima versión',
+            subtitulo: 'Wilson • Serie Exclusiva',
+            etiqueta: 'LANZAMIENTO',
+            imagenUrl:
+              'https://images.unsplash.com/photo-1599586120429-48281b6f0ece?auto=format&fit=crop&w=800&q=80',
+            linkTo: '/paletas?marca=Wilson',
+            precio: 340,
+            fecha: 'Preventa',
+          },
+          {
+            id: 'l4',
+            titulo: 'Bullpadel Flow Woman 2026 Alejandra Salazar: Ligereza y control total',
+            subtitulo: 'Bullpadel • Pro Line',
+            etiqueta: 'LANZAMIENTO',
+            imagenUrl:
+              'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=800&q=80',
+            linkTo: '/paletas?marca=Bullpadel',
+            precio: 270,
+            fecha: 'Nuevo',
+          },
+        ];
+
+        // 4. Carrusel: Nuevas paletas agregadas al catálogo (con navegación directa a /paletas/:id)
+        const mockCatalogo: CarouselCardItem[] = palas.map((pala: Pala) => ({
+          id: `cat-${pala.id}`,
+          titulo: `${pala.marcaNombre} ${pala.modelo}`,
+          subtitulo: `${pala.forma} • ${pala.materialCaras}`,
+          etiqueta: 'NUEVA EN CATÁLOGO',
+          imagenUrl:
+            pala.imagenUrl ||
+            'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=800&q=80',
+          linkTo: `/paletas/${pala.id}`,
+          rating: pala.puntuacionGeneral || 9.1,
+          precio: pala.precioReferencia || 280,
+        }));
+
+        if (isMounted) {
+          setPaletasNuevas(mockPaletasNuevas);
+          setDeLaComunidad(mockComunidad);
+          setNuevosLanzamientos(mockNuevosLanzamientos);
+          setCatalogoReciente(
+            mockCatalogo.length > 0
+              ? mockCatalogo
+              : [
+                {
+                  id: 1,
+                  titulo: 'Bullpadel Vertex 04 2026',
+                  subtitulo: 'Diamante • Carbono 12K',
+                  etiqueta: 'NUEVA EN CATÁLOGO',
+                  imagenUrl:
+                    'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=800&q=80',
+                  linkTo: '/paletas/1',
+                  rating: 9.6,
+                  precio: 310,
+                },
+                {
+                  id: 2,
+                  titulo: 'Nox AT10 Luxury Genius 18K',
+                  subtitulo: 'Lágrima • Carbono 18K',
+                  etiqueta: 'NUEVA EN CATÁLOGO',
+                  imagenUrl:
+                    'https://images.unsplash.com/photo-1599586120429-48281b6f0ece?auto=format&fit=crop&w=800&q=80',
+                  linkTo: '/paletas/2',
+                  rating: 9.8,
+                  precio: 330,
+                },
+                {
+                  id: 3,
+                  titulo: 'Babolat Technical Viper',
+                  subtitulo: 'Diamante • Carbono 3K',
+                  etiqueta: 'NUEVA EN CATÁLOGO',
+                  imagenUrl:
+                    'https://images.unsplash.com/photo-1544919982-b61976f0ba43?auto=format&fit=crop&w=800&q=80',
+                  linkTo: '/paletas/3',
+                  rating: 9.3,
+                  precio: 295,
+                },
+                {
+                  id: 4,
+                  titulo: 'Head Extreme Pro',
+                  subtitulo: 'Diamante • Híbrido',
+                  etiqueta: 'NUEVA EN CATÁLOGO',
+                  imagenUrl:
+                    'https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=800&q=80',
+                  linkTo: '/paletas/4',
+                  rating: 9.1,
+                  precio: 285,
+                },
+              ]
+          );
+        }
       } catch (err) {
-        console.error('Error cargando Padelgram posts:', err);
+        console.error('Error cargando secciones:', err);
       } finally {
-        setLoadingPadelgram(false);
+        if (isMounted) setLoading(false);
       }
     }
 
-    loadData();
+    loadAllSections();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const handleHeroSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (heroSearch.trim()) {
-      navigate(`/catalogo?search=${encodeURIComponent(heroSearch.trim())}`);
-    } else {
-      navigate('/catalogo');
-    }
-  };
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '36px', width: '100%' }} className="animate-fade-in">
-      {/* Hero Banner Revista Deportiva Full-Width */}
-      <section
-        style={{
-          position: 'relative',
-          padding: '48px 36px',
-          background: 'radial-gradient(ellipse at top right, rgba(37, 99, 235, 0.22) 0%, var(--bg-card) 70%)',
-          border: '1px solid var(--border-card)',
-          borderRadius: 'var(--radius-lg)',
-          boxShadow: 'var(--shadow-card-elevated)',
-          overflow: 'hidden',
-        }}
-      >
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: '780px' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '6px 14px',
-              borderRadius: 'var(--radius-full)',
-              background: 'rgba(37, 99, 235, 0.15)',
-              border: '1px solid var(--border-accent)',
-              color: 'var(--padel-court-blue-light)',
-              fontSize: '0.75rem',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              marginBottom: '18px',
-            }}
-          >
-            <Sparkles size={14} />
-            <span>Palantica • La Enciclopedia Técnica y Sensorial del Pádel</span>
+    <div className="w-full flex flex-col gap-8 animate-fade-in pb-12">
+      {/* 1. CARD DESTACADA HERO: Editorial Swiss, imagen a card completo, titular gigante adaptativo */}
+      <section className="relative w-full rounded-3xl overflow-hidden min-h-[380px] sm:min-h-[440px] flex items-end border border-white/10 shadow-2xl bg-zinc-950 group">
+        <img
+          src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=1600&q=85"
+          alt="Palantica Editorial Pádel"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+        />
+
+        {/* Gradiente cinemático suave */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent sm:bg-gradient-to-r sm:from-black/40 sm:via-black/70 sm:to-black/95 pointer-events-none" />
+
+        {/* Contenido en la mitad derecha con tipografía Swiss gigante */}
+        <div className="relative z-10 w-full p-6 sm:p-10 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+          <div className="max-w-xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500 text-zinc-950 shadow-md mb-3">
+              <Sparkles size={13} />
+              <span>Destacado Editorial</span>
+            </div>
+
+            <h1
+              ref={heroTitleRef}
+              className="font-black tracking-tight text-white leading-tight drop-shadow-md text-3xl sm:text-4xl md:text-5xl"
+            >
+              La Guía Definitiva de Palas 2026: Dureza, Balances y Comportamiento Térmico
+            </h1>
+
+            <p className="mt-3 text-sm sm:text-base text-zinc-200 line-clamp-2 max-w-lg font-medium">
+              Analizamos la física y el tacto sensorial de cada goma EVA y trenzado de carbono en pista para encontrar la pala exacta según tu estilo y clima.
+            </p>
           </div>
 
-          <h1
-            style={{
-              fontSize: '2.6rem',
-              fontWeight: 900,
-              lineHeight: 1.12,
-              letterSpacing: '-0.03em',
-              marginBottom: '14px',
-              color: 'var(--text-primary)',
-            }}
-          >
-            Descubrí la pala ideal para tu personalidad en pista.
-          </h1>
-
-          <p
-            style={{
-              fontSize: '0.98rem',
-              color: 'var(--text-secondary)',
-              lineHeight: 1.6,
-              marginBottom: '28px',
-              maxWidth: '680px',
-            }}
-          >
-            Fichas técnicas sagradas, pirámide de construcción de materiales, acuerdos sensoriales apilados, comportamiento térmico y similitud vectorial entre palas del circuito.
-          </p>
-
-          {/* Buscador Rápido Integrado en Hero */}
-          <form
-            onSubmit={handleHeroSearchSubmit}
-            style={{
-              display: 'flex',
-              gap: '10px',
-              maxWidth: '560px',
-              marginBottom: '24px',
-            }}
-          >
-            <div style={{ position: 'relative', flex: 1 }}>
-              <Search
-                size={18}
-                color="var(--text-muted)"
-                style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }}
-              />
-              <input
-                type="text"
-                placeholder="Buscar por modelo, carbono, goma o jugador pro..."
-                value={heroSearch}
-                onChange={(e) => setHeroSearch(e.target.value)}
-                className="input-field"
-                style={{
-                  paddingLeft: '44px',
-                  height: '46px',
-                  borderRadius: 'var(--radius-full)',
-                  fontSize: '0.90rem',
-                }}
-              />
-            </div>
-            <button
-              type="submit"
-              className="btn-primary"
-              style={{
-                padding: '0 24px',
-                height: '46px',
-                borderRadius: 'var(--radius-full)',
-                flexShrink: 0,
-              }}
+          <div className="flex items-center gap-3">
+            <Link
+              to="/paletas"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-500 text-zinc-950 font-extrabold text-sm hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/25 active:scale-95 whitespace-nowrap"
             >
-              <span>Buscar</span>
-              <ArrowRight size={15} />
-            </button>
-          </form>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-            <button
-              type="button"
-              onClick={() => setShowFinder(true)}
-              className="btn-primary"
-              style={{ borderRadius: '0px', padding: '11px 20px' }}
-            >
-              <Sparkles size={16} />
-              <span>Pala Finder • Quiz Sensorial</span>
-            </button>
-            <Link to="/comparador" className="btn-secondary" style={{ borderRadius: '0px', padding: '11px 18px' }}>
-              <ArrowLeftRight size={16} />
-              <span>Comparador A/B</span>
-            </Link>
-            <Link to="/catalogo" className="btn-secondary" style={{ borderRadius: '0px', padding: '11px 18px' }}>
-              <Compass size={16} />
-              <span>Ver Catálogo</span>
-            </Link>
-            <Link to="/padelgram" className="btn-secondary" style={{ borderRadius: '0px', padding: '11px 18px' }}>
-              <Camera size={16} />
-              <span>Muro Padelgram</span>
+              <span>Explorar Catálogo</span>
+              <ArrowUpRight size={16} />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Sección 1: Noticias & Análisis Técnico de Material (Fotografía Auténtica) */}
-      <section>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '18px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Newspaper size={20} color="var(--padel-court-blue-vibrant)" />
-            <h2 style={{ fontSize: '1.45rem', fontWeight: 800 }}>Actualidad & Análisis de Laboratorio</h2>
-          </div>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Padel Tech Feed</span>
+      {/* 2. LAYOUT PRINCIPAL: Columna con carruseles + Sidebar derecha */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* COLUMNA PRINCIPAL (8 columnas en desktop): Las 4 secciones apiladas */}
+        <div className="lg:col-span-8 xl:col-span-9 flex flex-col gap-10">
+          {/* Carrusel 1: Paletas nuevas */}
+          <Carousel
+            titulo="Paletas nuevas"
+            items={paletasNuevas}
+            verTodoLink="/paletas"
+            loading={loading}
+          />
+
+          {/* Carrusel 2: De la comunidad (con filtros HOY, SEMANA, MES) */}
+          <Carousel
+            titulo="De la comunidad"
+            items={deLaComunidad}
+            verTodoLink="/feed"
+            filtros={['HOY', 'SEMANA', 'MES']}
+            filtroActivo={filtroComunidad}
+            onFiltroChange={(f) => setFiltroComunidad(f)}
+            loading={loading}
+          />
+
+          {/* Carrusel 3: Nuevos lanzamientos */}
+          <Carousel
+            titulo="Nuevos lanzamientos"
+            items={nuevosLanzamientos}
+            verTodoLink="/paletas"
+            loading={loading}
+          />
+
+          {/* Carrusel 4: Nuevas paletas en el catálogo */}
+          <Carousel
+            titulo="Nuevas paletas"
+            items={catalogoReciente}
+            verTodoLink="/paletas"
+            loading={loading}
+          />
         </div>
 
-        {loadingNoticias ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="card-skeuomorphic" style={{ padding: '16px' }}>
-                <Skeleton height="150px" borderRadius="var(--radius-sm)" style={{ marginBottom: '12px' }} />
-                <Skeleton width="40%" height="16px" style={{ marginBottom: '8px' }} />
-                <Skeleton width="90%" height="20px" style={{ marginBottom: '8px' }} />
-                <Skeleton width="100%" height="14px" />
+        {/* SIDEBAR DERECHA (4 columnas en desktop): Estadísticas y Últimas Reseñas */}
+        <aside className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6 sticky top-28">
+          {/* Bloque 1: Enciclopedia de Paletas (Estadísticas inspiradas en Fragrantica) */}
+          <div className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-white/10 shadow-lg flex flex-col gap-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <Layers className="text-emerald-400" size={18} />
+                <h3 className="text-base font-black tracking-tight text-white m-0">
+                  Enciclopedia de Paletas
+                </h3>
               </div>
-            ))}
+              <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400">
+                <Radio size={12} className="animate-pulse" />
+                En vivo
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-2xl bg-zinc-900/80 border border-white/5 flex flex-col">
+                <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                  Total de Paletas
+                </span>
+                <span className="text-2xl font-black text-white tracking-tight mt-0.5">
+                  148
+                </span>
+                <span className="text-[10px] text-emerald-400 mt-1 font-medium">
+                  +12 este mes
+                </span>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-zinc-900/80 border border-white/5 flex flex-col">
+                <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                  Reseñas Reales
+                </span>
+                <span className="text-2xl font-black text-white tracking-tight mt-0.5">
+                  1,420
+                </span>
+                <span className="text-[10px] text-zinc-400 mt-1 font-medium">
+                  100% verificadas
+                </span>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-zinc-900/80 border border-white/5 flex flex-col">
+                <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                  Jugadores
+                </span>
+                <span className="text-2xl font-black text-white tracking-tight mt-0.5">
+                  3,850
+                </span>
+                <span className="text-[10px] text-emerald-400 mt-1 font-medium">
+                  Comunidad activa
+                </span>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-zinc-900/80 border border-white/5 flex flex-col">
+                <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                  En línea ahora
+                </span>
+                <span className="text-2xl font-black text-emerald-400 tracking-tight mt-0.5">
+                  64
+                </span>
+                <span className="text-[10px] text-zinc-400 mt-1 font-medium">
+                  Debatiendo
+                </span>
+              </div>
+            </div>
+
+            <Link
+              to="/paletas"
+              className="w-full mt-1 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-center text-xs font-bold text-white transition-colors flex items-center justify-center gap-1.5"
+            >
+              <span>Explorar Fichas Técnicas</span>
+              <ChevronRight size={14} />
+            </Link>
           </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-            {noticias.map((item) => (
-              <article
-                key={item.id}
-                className="card-skeuomorphic"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '16px',
-                }}
+
+          {/* Bloque 2: Últimas reseñas */}
+          <div className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-white/10 shadow-lg flex flex-col gap-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <Star className="text-amber-400 fill-amber-400/20" size={18} />
+                <h3 className="text-base font-black tracking-tight text-white m-0">
+                  Últimas Reseñas
+                </h3>
+              </div>
+              <Link
+                to="/paletas"
+                className="text-xs font-bold text-emerald-400 hover:text-emerald-300"
               >
-                {item.imagenUrl && (
-                  <div
-                    style={{
-                      height: '160px',
-                      borderRadius: 'var(--radius-sm)',
-                      overflow: 'hidden',
-                      marginBottom: '12px',
-                      border: '1px solid var(--border-subtle)',
-                    }}
-                  >
+                Ver todas
+              </Link>
+            </div>
+
+            <div className="flex flex-col gap-3.5">
+              {[
+                {
+                  pala: 'Bullpadel Vertex 04',
+                  marca: 'Bullpadel',
+                  autor: 'Juan Ignacio M.',
+                  avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+                  puntuacion: 9.5,
+                  comentario: 'Increíble salida de pared y la goma no pierde tacto en calor.',
+                  tiempo: 'Hace 25 min',
+                  link: '/paletas/1',
+                  imagenPala: 'https://noxsport.es/cdn/shop/files/PALA_NOX_AT10_GENIUS_18K_BY_AGUSTIN_TAPIA_2025_01.png',
+                },
+                {
+                  pala: 'Nox AT10 18K Alum',
+                  marca: 'Nox',
+                  autor: 'Mariano B.',
+                  avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=120&q=80',
+                  puntuacion: 9.8,
+                  comentario: 'La pala más maniobrable que probé en red. El balance es perfecto.',
+                  tiempo: 'Hace 2 h',
+                  link: '/paletas/2',
+                  imagenPala: 'https://noxsport.es/cdn/shop/files/PALA_NOX_AT10_GENIUS_18K_BY_AGUSTIN_TAPIA_2025_01.png',
+                },
+                {
+                  pala: 'Siux Electra ST3',
+                  marca: 'Siux',
+                  autor: 'Sofía V.',
+                  avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
+                  puntuacion: 9.2,
+                  comentario: 'Tacto medio-duro muy firme. Para rematar por tres es letal.',
+                  tiempo: 'Hace 4 h',
+                  link: '/paletas/3',
+                  imagenPala: 'https://noxsport.es/cdn/shop/files/PALA_NOX_AT10_GENIUS_18K_BY_AGUSTIN_TAPIA_2025_01.png',
+                },
+              ].map((res, i) => (
+                <Link
+                  key={i}
+                  to={res.link}
+                  className="p-3.5 sm:p-4 rounded-2xl bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/5 hover:border-emerald-500/30 transition-all flex items-center gap-3.5 group min-h-[116px]"
+                >
+                  {/* Imagen de la paleta en pedestal con iluminación superior */}
+                  <div className="w-20 h-24 sm:w-22 sm:h-26 rounded-xl bg-gradient-to-b from-zinc-800 to-zinc-950 flex items-center justify-center p-1.5 border border-white/10 flex-shrink-0 relative overflow-hidden group-hover:border-emerald-500/40 transition-colors shadow-inner">
                     <img
-                      src={item.imagenUrl}
-                      alt={item.titulo}
-                      loading="lazy"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      src={res.imagenPala}
+                      alt={res.pala}
+                      className="w-full h-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] group-hover:scale-110 transition-transform duration-300"
                     />
                   </div>
-                )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span className="badge badge-steel" style={{ fontSize: '0.68rem' }}>
-                    {item.categoria}
-                  </span>
-                  <span style={{ fontSize: '0.70rem', color: 'var(--text-muted)' }}>
-                    {item.tiempoLecturaMinutos} min lectura
-                  </span>
-                </div>
-                <h3
-                  style={{
-                    fontSize: '1.05rem',
-                    fontWeight: 800,
-                    lineHeight: 1.35,
-                    color: 'var(--text-primary)',
-                    marginBottom: '8px',
-                  }}
-                >
-                  {item.titulo}
-                </h3>
-                <p
-                  style={{
-                    fontSize: '0.82rem',
-                    color: 'var(--text-secondary)',
-                    lineHeight: 1.5,
-                    flex: 1,
-                    marginBottom: '14px',
-                  }}
-                >
-                  {item.resumen}
-                </p>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    borderTop: '1px solid var(--border-subtle)',
-                    paddingTop: '10px',
-                  }}
-                >
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{item.fuente}</span>
-                  {item.urlFuente && (
-                    <a
-                      href={item.urlFuente}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        fontSize: '0.76rem',
-                        fontWeight: 700,
-                        color: 'var(--padel-court-blue-vibrant)',
-                      }}
-                    >
-                      <span>Leer artículo</span>
-                      <ChevronRight size={14} />
-                    </a>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
 
-      {/* Sección 2: Palas Más Valoradas por la Comunidad */}
-      <section>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '18px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Flame size={20} color="var(--padel-amber-rating)" />
-            <h2 style={{ fontSize: '1.45rem', fontWeight: 800 }}>Palas Más Valoradas</h2>
-          </div>
-          <Link
-            to="/catalogo"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              color: 'var(--padel-court-blue-vibrant)',
-              fontSize: '0.85rem',
-              fontWeight: 700,
-            }}
-          >
-            <span>Ver catálogo completo</span>
-            <ChevronRight size={16} />
-          </Link>
-        </div>
+                  {/* Información detallada de la reseña */}
+                  <div className="flex-1 min-w-0 flex flex-col justify-between h-full py-0.5">
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-black text-white group-hover:text-emerald-400 transition-colors truncate">
+                          {res.pala}
+                        </span>
+                        <span className="flex items-center gap-1 text-xs font-black text-amber-400 flex-shrink-0">
+                          <Star size={12} className="fill-amber-400 text-amber-400" />
+                          {res.puntuacion}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mt-0.5">
+                        {res.marca}
+                      </span>
+                    </div>
 
-        {loadingPalas ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-            {Array.from({ length: 4 }).map((_, i) => (
-              <PalaCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-            {palasDestacadas.map((pala) => (
-              <PalaCard key={pala.id} pala={pala} />
-            ))}
-          </div>
-        )}
-      </section>
+                    <p className="text-xs text-zinc-300 font-normal line-clamp-2 my-1 leading-relaxed">
+                      "{res.comentario}"
+                    </p>
 
-      {/* Sección 3: Muro Padelgram en Pista (Social Feed) */}
-      {padelgramPosts.length > 0 && (
-        <section>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '18px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Camera size={20} color="var(--padel-turf-green)" />
-              <h2 style={{ fontSize: '1.45rem', fontWeight: 800 }}>Padelgram: La Comunidad en Pista</h2>
-            </div>
-            <Link
-              to="/padelgram"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                color: 'var(--padel-turf-green)',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-              }}
-            >
-              <span>Explorar Padelgram</span>
-              <ChevronRight size={16} />
-            </Link>
-          </div>
-
-          {loadingPadelgram ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="card-skeuomorphic" style={{ padding: '12px' }}>
-                  <Skeleton height="180px" borderRadius="var(--radius-sm)" />
-                </div>
+                    <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-1 border-t border-white/5">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <img
+                          src={res.avatar}
+                          alt={res.autor}
+                          className="w-4 h-4 rounded-full object-cover flex-shrink-0"
+                        />
+                        <span className="font-medium text-zinc-300 truncate text-[11px]">{res.autor}</span>
+                      </div>
+                      <span className="text-[10px] flex-shrink-0 text-zinc-500">{res.tiempo}</span>
+                    </div>
+                  </div>
+                </Link>
               ))}
             </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
-              {padelgramPosts.map((post) => (
-              <div
-                key={post.id}
-                className="card-skeuomorphic"
-                style={{
-                  padding: '12px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px',
-                }}
-              >
-                <div
-                  style={{
-                    height: '180px',
-                    borderRadius: 'var(--radius-sm)',
-                    overflow: 'hidden',
-                    position: 'relative',
-                  }}
-                >
-                  <img
-                    src={post.imagenUrl}
-                    alt={post.palaModelo}
-                    loading="lazy"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      padding: '6px 10px',
-                      background: 'linear-gradient(transparent, rgba(10, 17, 40, 0.9))',
-                      color: '#FFFFFF',
-                      fontSize: '0.74rem',
-                      fontWeight: 700,
-                    }}
-                  >
-                    @{post.usuarioNombre} • {post.palaModelo}
-                  </div>
-                </div>
-
-                {post.descripcion && (
-                  <p style={{ fontSize: '0.80rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                    "{post.descripcion}"
-                  </p>
-                )}
-              </div>
-            ))}
           </div>
-        )}
-      </section>
-    )}
-
-      {/* Sección 4: Callout de Mi Paletero Digital */}
-      <section
-        className="card-skeuomorphic"
-        style={{
-          padding: '28px 32px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '14px',
-          borderLeft: '5px solid var(--padel-turf-green)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <ShieldCheck size={26} color="var(--padel-turf-green)" />
-          <h3 style={{ fontSize: '1.35rem', fontWeight: 800 }}>Armá tu Paletero Digital</h3>
-        </div>
-        <p style={{ fontSize: '0.90rem', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '780px' }}>
-          Registrá tu pala titular de competición, organizá tus reservas en el paletero y construí tu lista de deseos con notas técnicas personalizadas, telemetría de rendimiento y comparativa instantánea.
-        </p>
-        <div style={{ marginTop: '6px' }}>
-          <Link to="/paletero" className="btn-primary" style={{ padding: '10px 22px', fontSize: '0.90rem', borderRadius: '0px' }}>
-            <Award size={16} />
-            <span>Gestionar Mi Paletero</span>
-          </Link>
-        </div>
-      </section>
-
-      <PalaFinderModal isOpen={showFinder} onClose={() => setShowFinder(false)} />
+        </aside>
+      </div>
     </div>
   );
 };

@@ -42,9 +42,16 @@ export interface Pala {
   jugadorPro?: string | null;
   totalResenas: number;
   totalVotos: number;
+  nivelJuego?: NivelJuego | string;
+  balanceNivel?: 'Bajo' | 'Medio' | 'Alto' | string;
+  durezaNivel?: 'Blanda' | 'Media' | 'Dura' | string;
+  genero?: 'Hombre' | 'Mujer' | 'Unisex' | string;
 }
 
+export type Paleta = Pala;
+
 export interface PalaSimilar {
+
   id: number;
   marcaId: number;
   marcaNombre: string;
@@ -259,3 +266,131 @@ export interface PagedResponse<T> {
   hasNextPage: boolean;
   hasPreviousPage: boolean;
 }
+
+// ==========================================
+// Tipos para Foro de Debate
+// ==========================================
+export type CategoriaForo =
+  | 'Paletas y equipamiento'
+  | 'Técnica y táctica'
+  | 'Torneos y circuito'
+  | 'Comunidad';
+
+export interface RespuestaForo {
+  id: string;
+  hiloId: string;
+  autor: {
+    id: number;
+    nombre: string;
+    avatarUrl?: string | null;
+    nivelJuego?: string;
+  };
+  fecha: string;
+  contenido: string;
+  votos: number;
+  userHasVoted?: boolean;
+  citaId?: string | null;
+  citaTexto?: string | null;
+  citaAutor?: string | null;
+}
+
+export interface HiloForo {
+  id: string;
+  titulo: string;
+  categoria: CategoriaForo;
+  autor: {
+    id: number;
+    nombre: string;
+    avatarUrl?: string | null;
+    rol?: string;
+    nivelJuego?: string;
+  };
+  fechaCreacion: string;
+  cantidadRespuestas: number;
+  ultimaActividad: string;
+  contenidoInicial: string;
+  votos: number;
+  userHasVoted?: boolean;
+  respuestas?: RespuestaForo[];
+}
+
+// ==========================================
+// Tipos para Feed de la Comunidad
+// ==========================================
+export interface ComentarioPublicacion {
+  id: string;
+  publicacionId: string;
+  autor: {
+    id: number;
+    nombre: string;
+    avatarUrl?: string | null;
+  };
+  fecha: string;
+  texto: string;
+}
+
+export interface Publicacion {
+  id: string;
+  autor: {
+    id: number;
+    nombre: string;
+    avatarUrl?: string | null;
+    nivelJuego?: string;
+  };
+  fechaPublicacion: string;
+  texto: string;
+  imagenes?: string[];
+  paletaEtiquetada?: {
+    id: number;
+    modelo: string;
+    marca: string;
+    imagenUrl?: string | null;
+  };
+  likesCount: number;
+  userHasLiked?: boolean;
+  comentariosCount: number;
+  comentarios?: ComentarioPublicacion[];
+}
+
+// ==========================================
+// Tipos para Tarjetas de Carrusel Unificadas (Estilo Fragrantica)
+// ==========================================
+export interface CarouselCardItem {
+  id: string | number;
+  titulo: string;
+  subtitulo?: string;
+  etiqueta: string;
+  imagenUrl: string;
+  linkTo: string;
+  autor?: {
+    nombre: string;
+    avatarUrl?: string | null;
+  };
+  fecha?: string;
+  likes?: number;
+  comentarios?: number;
+  rating?: number;
+  precio?: number;
+}
+
+// ==========================================
+// Filtros por Distintivos de Paletas
+// ==========================================
+export interface FiltrosDistintivos {
+  search?: string;
+  marca?: string;
+  forma?: string;
+  balance?: string;
+  dureza?: string;
+  pesoMin?: number;
+  pesoMax?: number;
+  nivelJuego?: string;
+  materialNucleo?: string;
+  materialCaras?: string;
+  anoLanzamiento?: number;
+  genero?: string;
+  precioMin?: number;
+  precioMax?: number;
+  orderBy?: 'novedad' | 'puntuacion' | 'populares' | 'precio_asc' | 'precio_desc';
+}
+

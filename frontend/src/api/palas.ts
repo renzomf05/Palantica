@@ -3,7 +3,7 @@ import type { Pala, PalaDetalle, PalaSimilar, PalaFilterParams, PagedResponse, M
 
 export const palasApi = {
   getPalas: (params?: PalaFilterParams) =>
-    apiClient.get<PagedResponse<Pala>>('/api/v1/palas', params as any),
+    apiClient.get<PagedResponse<Pala>>('/api/v1/palas', params as Record<string, string | number | boolean | null | undefined>),
 
   getPalaDetalle: (id: number) =>
     apiClient.get<PalaDetalle>(`/api/v1/palas/${id}`),

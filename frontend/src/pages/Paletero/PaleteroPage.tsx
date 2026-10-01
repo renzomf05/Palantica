@@ -40,7 +40,7 @@ export const PaleteroPage: React.FC = () => {
   const [expandedTelemetry, setExpandedTelemetry] = useState<Record<number, boolean>>({});
 
   // Carga de paletero
-  const cargarPaletero = async () => {
+  const cargarPaletero = React.useCallback(async () => {
     if (!isAuthenticated) {
       setLoading(false);
       return;
@@ -79,11 +79,14 @@ export const PaleteroPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    cargarPaletero();
-  }, [isAuthenticated]);
+    const timer = setTimeout(() => {
+      cargarPaletero();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [cargarPaletero]);
 
   const handleEliminar = async (palaId: number, categoria: string) => {
     if (!confirm('¿Deseás quitar esta pala de este compartimento?')) return;

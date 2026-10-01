@@ -1,40 +1,40 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700&display=swap');
+@import "tailwindcss";
 @import './tokens.css';
 
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    width: 100%;
+    min-height: 100%;
+    background-color: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
 }
 
-html, body {
-  width: 100%;
-  min-height: 100%;
-  background-color: var(--bg-deep);
-  color: var(--text-primary);
+/* Swiss typography hierarchy */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-h1, h2, h3 {
-  font-family: var(--font-serif);
-  letter-spacing: -0.015em;
-  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-weight: 800;
   color: var(--text-primary);
-}
-
-h4, h5, h6 {
-  font-family: var(--font-sans);
-  letter-spacing: -0.01em;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.font-serif {
-  font-family: var(--font-serif);
 }
 
 .font-sans {
@@ -53,40 +53,77 @@ button {
   font-family: inherit;
 }
 
-/* Scrollbar Táctil */
+/* Scrollbar sutil */
 ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--bg-deep);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--border-card);
   border-radius: var(--radius-full);
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary-sage);
 }
 
-/* ==========================================================
-   LAYOUT Y CONTENEDOR FULL-WIDTH RESPONSIVE (PC & MÓVIL)
-   ========================================================== */
-
-.app-container {
-  width: 100%;
-  max-width: 1720px;
-  margin: 0 auto;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  padding-bottom: calc(var(--nav-height) + 24px);
+/* Ocultar barra de scroll en carruseles táctiles */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-@media (min-width: 768px) {
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@layer components {
+  /* ==========================================================
+     CONTENEDOR UNIFICADO PALANTICA (CENTRADO 1320px)
+     ========================================================== */
+  .palantica-container {
+    width: 100%;
+    max-width: 1320px;
+    margin-inline: auto;
+    padding-inline: 20px;
+    box-sizing: border-box;
+  }
+
+  @media (min-width: 640px) {
+    .palantica-container {
+      padding-inline: 32px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .palantica-container {
+      padding-inline: 40px;
+    }
+  }
+
+  /* ==========================================================
+     LAYOUT Y CONTENEDOR FULL-WIDTH RESPONSIVE
+     ========================================================== */
   .app-container {
-    padding-bottom: 32px;
+    width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding-bottom: calc(var(--nav-height) + 24px);
+  }
+
+  @media (min-width: 768px) {
+    .app-container {
+      padding-bottom: 40px;
+    }
   }
 }
 
@@ -103,122 +140,59 @@ button {
   }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1280px) {
   .main-content {
-    padding: 28px 40px;
-  }
-}
-
-@media (min-width: 1600px) {
-  .main-content {
-    padding: 32px 48px;
+    padding: 28px 48px;
   }
 }
 
 /* ==========================================================
-   GRILLAS RESPONSIVAS FULL-WIDTH (DETALLE Y CATÁLOGO)
+   CARDS CON ESQUINAS REDONDEADAS (rounded-2xl a rounded-3xl)
    ========================================================== */
-
-.pala-grid-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 28px;
-  width: 100%;
-}
-
-@media (min-width: 1080px) {
-  .pala-grid-layout {
-    grid-template-columns: 440px 1fr;
-    align-items: start;
-  }
-}
-
-@media (min-width: 1440px) {
-  .pala-grid-layout {
-    grid-template-columns: 480px 1fr;
-  }
-}
-
-.catalogo-desktop-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  width: 100%;
-}
-
-@media (min-width: 1080px) {
-  .catalogo-desktop-layout {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    align-items: start;
-    gap: 32px;
-  }
-}
-
-/* ==========================================================
-   SKEUOMORFISMO TÁCTIL Y RELIEVES 3D
-   ========================================================== */
-
 .card-skeuomorphic {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-card);
   backdrop-filter: blur(14px);
-  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
-}
-
-.card-skeuomorphic::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
-  pointer-events: none;
 }
 
 .card-skeuomorphic:hover {
   border-color: var(--border-card-hover);
   transform: translateY(-3px);
-  box-shadow: var(--shadow-card-elevated), 0 0 20px var(--color-primary-sage-glow);
+  box-shadow: var(--shadow-card-elevated);
 }
 
 /* ==========================================================
-   BOTONES CON FÍSICA Y PESO TÁCTIL 3D
+   BOTONES
    ========================================================== */
-
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: linear-gradient(180deg, var(--color-primary-sage) 0%, var(--color-primary-sage-dim) 100%);
-  color: #FFFFFF;
+  background: var(--color-primary-sage);
+  color: #080B0F;
   font-weight: 700;
-  font-size: 0.90rem;
-  padding: 11px 22px;
-  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  padding: 10px 20px;
+  border-radius: var(--radius-xl);
   box-shadow: var(--shadow-btn-primary);
   transition: all 0.15s ease;
-  letter-spacing: 0.02em;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  position: relative;
+  letter-spacing: -0.01em;
   user-select: none;
 }
 
 .btn-primary:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.1);
   transform: translateY(-1px);
 }
 
 .btn-primary:active {
-  transform: translateY(2px);
-  box-shadow: var(--shadow-btn-pressed);
-  filter: brightness(0.95);
+  transform: translateY(1px);
 }
 
 .btn-secondary {
@@ -226,14 +200,13 @@ button {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: linear-gradient(180deg, var(--bg-card-hover) 0%, var(--bg-card) 100%);
+  background: var(--bg-card);
   color: var(--text-primary);
   font-weight: 600;
-  font-size: 0.88rem;
-  padding: 10px 18px;
+  font-size: 0.86rem;
+  padding: 9px 18px;
   border: 1px solid var(--border-card);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-btn-secondary);
+  border-radius: var(--radius-xl);
   transition: all 0.15s ease;
   user-select: none;
 }
@@ -241,101 +214,62 @@ button {
 .btn-secondary:hover {
   border-color: var(--color-primary-sage);
   color: var(--color-primary-sage);
-  transform: translateY(-1px);
-}
-
-.btn-secondary:active {
-  transform: translateY(2px);
-  box-shadow: var(--shadow-btn-pressed);
-}
-
-.btn-steel {
-  background: linear-gradient(180deg, var(--color-accent-steel) 0%, var(--color-accent-steel-dim) 100%);
-  color: #FFFFFF;
-  box-shadow: 0 4px 14px var(--color-accent-steel-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 0 #1E3A8A;
-}
-
-.btn-steel:hover {
-  filter: brightness(1.08);
-}
-
-.btn-steel:active {
-  transform: translateY(2px);
-  box-shadow: var(--shadow-btn-pressed);
+  background: var(--bg-card-hover);
 }
 
 /* ==========================================================
-   BADGES Y ETIQUETAS SOBRIAS
+   BADGES Y CHIPS
    ========================================================== */
-
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 9px;
+  padding: 4px 10px;
   border-radius: var(--radius-full);
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: 0.70rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   line-height: 1;
 }
 
 .badge-sage {
-  background: rgba(82, 183, 136, 0.12);
+  background: rgba(16, 185, 129, 0.15);
   color: var(--color-primary-sage);
-  border: 1px solid rgba(82, 183, 136, 0.28);
+  border: 1px solid rgba(16, 185, 129, 0.35);
 }
 
 .badge-steel {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(20, 184, 166, 0.15);
   color: var(--color-accent-steel);
-  border: 1px solid rgba(59, 130, 246, 0.28);
-}
-
-.badge-amber {
-  background: rgba(245, 158, 11, 0.12);
-  color: var(--color-accent-amber);
-  border: 1px solid rgba(245, 158, 11, 0.28);
+  border: 1px solid rgba(20, 184, 166, 0.35);
 }
 
 .badge-neutral {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
-}
-
-[data-theme="light"] .badge-neutral {
-  background: rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text-secondary);
   border: 1px solid var(--border-subtle);
 }
 
 /* ==========================================================
-   CAMPOS DE ENTRADA Y FORMULARIOS CON BISEL INTERNO
+   INPUTS
    ========================================================== */
-
 .input-field {
   width: 100%;
   background: var(--bg-input);
   border: 1px solid var(--border-card);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-lg);
   color: var(--text-primary);
-  padding: 11px 15px;
-  font-size: 0.92rem;
+  padding: 10px 16px;
+  font-size: 0.90rem;
   font-family: inherit;
   transition: all 0.2s ease;
   outline: none;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-[data-theme="light"] .input-field {
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .input-field:focus {
   border-color: var(--color-primary-sage);
-  box-shadow: 0 0 0 3px var(--color-primary-sage-glow), inset 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 0 2px var(--color-primary-sage-glow);
 }
 
 .input-field::placeholder {
@@ -343,40 +277,51 @@ button {
 }
 
 /* ==========================================================
-   ANIMACIONES FLUIDAS Y MICROINTERACCIONES
+   ANIMACIONES
    ========================================================== */
-
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
 
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.8; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.04); }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.35s ease forwards;
+  animation: fadeIn 0.3s ease forwards;
 }
 
 .animate-slide-up {
-  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .skeleton {
   background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.6s infinite;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
 }
