@@ -43,11 +43,11 @@
   --color-accent-amber: #F59E0B;
   --color-accent-amber-glow: rgba(245, 158, 11, 0.25);
 
-  /* TIPOGRAFÍA SWISS RIGUROSA (SIN SERIF) */
-  --font-sans: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --font-serif: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --font-display: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --font-body: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  /* TIPOGRAFÍA SWISS RIGUROSA (SIN SERIF, NEO-GROTESQUE) */
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-serif: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Helvetica Neue', Helvetica, 'Inter', sans-serif;
+  --font-body: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
   /* Geometría y Esquinas Redondeadas (rounded-2xl a rounded-3xl) */
   --radius-xs: 6px;

@@ -1,7 +1,10 @@
 @import "tailwindcss";
 @import './tokens.css';
 
-
+@theme {
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Helvetica Neue', Helvetica, 'Inter', sans-serif;
+}
 
 @layer base {
   *,
@@ -21,36 +24,39 @@
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
     transition: background-color 0.25s ease, color 0.25s ease;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
+    letter-spacing: -0.015em;
   }
-}
 
-/* Swiss typography hierarchy */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-sans);
-  letter-spacing: -0.03em;
-  font-weight: 800;
-  color: var(--text-primary);
-}
+  /* Swiss typography hierarchy */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-sans);
+    letter-spacing: -0.038em;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.12;
+  }
 
-.font-sans {
-  font-family: var(--font-sans);
-}
+  .font-sans {
+    font-family: var(--font-sans);
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-button {
-  cursor: pointer;
-  border: none;
-  background: none;
-  font-family: inherit;
+  button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+  }
 }
 
 /* Scrollbar sutil */
