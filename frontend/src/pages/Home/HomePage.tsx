@@ -6,7 +6,6 @@ import { Carousel } from '../../components/ui/Carousel';
 import { useFitText } from '../../hooks/useFitText';
 import type { Pala, CarouselCardItem, PadelgramPost } from '../../types';
 import {
-  Sparkles,
   Star,
   Layers,
   ArrowUpRight,
@@ -326,93 +325,91 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="w-full flex flex-col gap-8 animate-fade-in pb-12">
-      {/* 1. CARD DESTACADA HERO: Editorial Swiss, imagen a card completo, titular gigante adaptativo */}
-      <section className="relative w-full rounded-3xl overflow-hidden min-h-[380px] sm:min-h-[440px] flex items-end border border-white/10 shadow-2xl bg-zinc-950 group">
-        <img
-          src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=1600&q=85"
-          alt="Palantica Editorial Pádel"
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-        />
-
-        {/* Gradiente cinemático suave */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent sm:bg-gradient-to-r sm:from-black/40 sm:via-black/70 sm:to-black/95 pointer-events-none" />
-
-        {/* Contenido en la mitad derecha con tipografía Swiss gigante */}
-        <div className="relative z-10 w-full p-6 sm:p-10 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-          <div className="max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500 text-zinc-950 shadow-md mb-3">
-              <Sparkles size={13} />
-              <span>Destacado Editorial</span>
-            </div>
-
-            <h1
-              ref={heroTitleRef}
-              className="font-black tracking-tight text-white leading-tight drop-shadow-md text-3xl sm:text-4xl md:text-5xl"
-            >
-              La Guía Definitiva de Palas 2026: Dureza, Balances y Comportamiento Térmico
-            </h1>
-
-            <p className="mt-3 text-sm sm:text-base text-zinc-200 line-clamp-2 max-w-lg font-medium">
-              Analizamos la física y el tacto sensorial de cada goma EVA y trenzado de carbono en pista para encontrar la pala exacta según tu estilo y clima.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link
-              to="/paletas"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-500 text-zinc-950 font-extrabold text-sm hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/25 active:scale-95 whitespace-nowrap"
-            >
-              <span>Explorar Catálogo</span>
-              <ArrowUpRight size={16} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* 2. LAYOUT PRINCIPAL: Columna con carruseles + Sidebar derecha */}
+      {/* LAYOUT PRINCIPAL: Columna con Hero + Carruseles y Sidebar derecha simétrica */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* COLUMNA PRINCIPAL (8 columnas en desktop): Las 4 secciones apiladas */}
-        <div className="lg:col-span-8 xl:col-span-9 flex flex-col gap-10">
-          {/* Carrusel 1: Paletas nuevas */}
-          <Carousel
-            titulo="Paletas nuevas"
-            items={paletasNuevas}
-            verTodoLink="/paletas"
-            loading={loading}
-          />
+        {/* COLUMNA PRINCIPAL (8 columnas en desktop): Hero Editorial y Secciones */}
+        <div className="lg:col-span-8 xl:col-span-8 flex flex-col gap-8">
+          {/* 1. CARD DESTACADA HERO: Editorial Swiss adaptativo y simétrico con la sidebar */}
+          <section className="relative w-full rounded-3xl overflow-hidden min-h-[380px] sm:min-h-[400px] flex items-end border border-white/10 shadow-2xl bg-zinc-950 group">
+            <img
+              src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=1600&q=85"
+              alt="Palantica Editorial Pádel"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+            />
 
-          {/* Carrusel 2: De la comunidad (con filtros HOY, SEMANA, MES) */}
-          <Carousel
-            titulo="De la comunidad"
-            items={deLaComunidad}
-            verTodoLink="/feed"
-            filtros={['HOY', 'SEMANA', 'MES']}
-            filtroActivo={filtroComunidad}
-            onFiltroChange={(f) => setFiltroComunidad(f)}
-            loading={loading}
-          />
+            {/* Gradiente cinemático suave */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent sm:bg-gradient-to-r sm:from-black/50 sm:via-black/75 sm:to-black/90 pointer-events-none" />
 
-          {/* Carrusel 3: Nuevos lanzamientos */}
-          <Carousel
-            titulo="Nuevos lanzamientos"
-            items={nuevosLanzamientos}
-            verTodoLink="/paletas"
-            loading={loading}
-          />
+            {/* Contenido adaptado al ancho */}
+            <div className="relative z-10 w-full p-6 sm:p-8 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+              <div className="max-w-xl">
+                <h1
+                  ref={heroTitleRef}
+                  className="font-black tracking-tight text-white leading-tight drop-shadow-md text-2xl sm:text-3xl lg:text-4xl"
+                >
+                  La Guía Definitiva de Palas 2026: Dureza, Balances y Comportamiento Térmico
+                </h1>
 
-          {/* Carrusel 4: Nuevas paletas en el catálogo */}
-          <Carousel
-            titulo="Nuevas paletas"
-            items={catalogoReciente}
-            verTodoLink="/paletas"
-            loading={loading}
-          />
+                <p className="mt-3 text-sm sm:text-base text-zinc-200 line-clamp-2 max-w-lg font-medium">
+                  Analizamos la física y el tacto sensorial de cada goma EVA y trenzado de carbono en pista para encontrar la pala exacta según tu estilo y clima.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/paletas"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-500 text-zinc-950 font-extrabold text-xs sm:text-sm hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/25 active:scale-95 whitespace-nowrap"
+                >
+                  <span>Explorar Catálogo</span>
+                  <ArrowUpRight size={16} />
+                </Link>
+              </div>
+            </div>
+          </section>
+
+          {/* Carruseles de Paletas */}
+          <div className="flex flex-col gap-10">
+            {/* Carrusel 1: Paletas nuevas */}
+            <Carousel
+              titulo="Paletas nuevas"
+              items={paletasNuevas}
+              verTodoLink="/paletas"
+              loading={loading}
+            />
+
+            {/* Carrusel 2: De la comunidad (con filtros HOY, SEMANA, MES) */}
+            <Carousel
+              titulo="De la comunidad"
+              items={deLaComunidad}
+              verTodoLink="/feed"
+              filtros={['HOY', 'SEMANA', 'MES']}
+              filtroActivo={filtroComunidad}
+              onFiltroChange={(f) => setFiltroComunidad(f)}
+              loading={loading}
+            />
+
+            {/* Carrusel 3: Nuevos lanzamientos */}
+            <Carousel
+              titulo="Nuevos lanzamientos"
+              items={nuevosLanzamientos}
+              verTodoLink="/paletas"
+              loading={loading}
+            />
+
+            {/* Carrusel 4: Nuevas paletas en el catálogo */}
+            <Carousel
+              titulo="Nuevas paletas"
+              items={catalogoReciente}
+              verTodoLink="/paletas"
+              loading={loading}
+            />
+          </div>
         </div>
 
-        {/* SIDEBAR DERECHA (4 columnas en desktop): Estadísticas y Últimas Reseñas */}
-        <aside className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6 sticky top-28">
+        {/* SIDEBAR DERECHA (4 columnas en desktop): Estadísticas (Foto 1) y Últimas Reseñas */}
+        <aside className="lg:col-span-4 xl:col-span-4 flex flex-col gap-6 sticky top-24">
           {/* Bloque 1: Enciclopedia de Paletas (Estadísticas inspiradas en Fragrantica) */}
-          <div className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-white/10 shadow-lg flex flex-col gap-4">
+          <div className="p-5 sm:p-6 rounded-3xl bg-[var(--bg-surface)] border border-white/10 shadow-lg flex flex-col gap-4">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
                 <Layers className="text-emerald-400" size={18} />

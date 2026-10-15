@@ -67,27 +67,36 @@
    MODO OSCURO (POR DEFECTO): FONDO CASI NEGRO, SUPERFICIES GRIS MUY OSCURO
    ========================================================== */
 [data-theme="dark"] {
-  --bg-deep: #080B0F;               /* Fondo casi negro profundo */
-  --bg-surface: #11161F;            /* Superficie gris muy oscuro */
-  --bg-card: #161D27;               /* Card superficie estructurada */
-  --bg-card-hover: #1E2734;         /* Hover elevación táctil */
+  --bg-deep: #080B0F;
+  /* Fondo casi negro profundo */
+  --bg-surface: #11161F;
+  /* Superficie gris muy oscuro */
+  --bg-card: #161D27;
+  /* Card superficie estructurada */
+  --bg-card-hover: #1E2734;
+  /* Hover elevación táctil */
   --bg-card-elevated: #222C3B;
-  --bg-input: #0D1219;              /* Fondo de buscador e inputs */
+  --bg-input: #0D1219;
+  /* Fondo de buscador e inputs */
   --bg-glass: rgba(13, 18, 25, 0.88);
   --bg-glass-card: rgba(22, 29, 39, 0.85);
 
   --border-subtle: rgba(255, 255, 255, 0.07);
   --border-card: rgba(255, 255, 255, 0.10);
-  --border-card-hover: rgba(16, 185, 129, 0.50); /* Resaltado verde turquesa al hover */
+  --border-card-hover: rgba(16, 185, 129, 0.50);
+  /* Resaltado verde turquesa al hover */
   --border-steel-highlight: rgba(20, 184, 166, 0.35);
 
   --shadow-card: 0 6px 20px rgba(0, 0, 0, 0.45);
   --shadow-card-elevated: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 24px rgba(16, 185, 129, 0.12);
   --shadow-btn-primary: 0 4px 14px rgba(16, 185, 129, 0.35);
 
-  --text-primary: #F8FAFC;          /* Blanco nítido */
-  --text-secondary: #94A3B8;        /* Gris pizarra intermedio */
-  --text-muted: #64748B;            /* Atenuado */
+  --text-primary: #F8FAFC;
+  /* Blanco nítido */
+  --text-secondary: #94A3B8;
+  /* Gris pizarra intermedio */
+  --text-muted: #64748B;
+  /* Atenuado */
   --text-inverse: #080B0F;
 }
 
