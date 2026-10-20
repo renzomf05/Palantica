@@ -19,6 +19,9 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Migrations\*.sql" />
+    <None Update="Features\Padelful\padelful_rackets.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

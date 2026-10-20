@@ -39,9 +39,12 @@ export const PalaCard: React.FC<PalaCardProps> = ({ pala }) => {
         }}
       >
         <img
-          src={pala.imagenUrl || 'https://noxsport.es/cdn/shop/files/PALA_NOX_AT10_GENIUS_18K_BY_AGUSTIN_TAPIA_2025_01.png'}
+          src={pala.imagenUrl || 'https://www.padelful.com/images/rackets/variants/nox-at10-luxury-genius-18k-alum-2027-agustin-tapia-512.webp'}
           alt={pala.modelo}
           loading="lazy"
+          onError={(e) => {
+            e.currentTarget.src = 'https://www.padelful.com/images/rackets/variants/nox-at10-luxury-genius-18k-alum-2027-agustin-tapia-512.webp';
+          }}
           style={{
             maxWidth: '82%',
             maxHeight: '82%',

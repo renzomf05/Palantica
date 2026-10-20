@@ -572,18 +572,17 @@ export const PaleteroPage: React.FC = () => {
                   }}
                 >
                   <Link
-                    to={`/comparador?pala1=${item.palaId}`}
+                    to={`/palas/${item.palaId}`}
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px',
                       fontSize: '0.76rem',
-                      color: 'var(--padel-court-blue-light)',
+                      color: 'var(--padel-turf-green)',
                       fontWeight: 700,
                     }}
                   >
-                    <ArrowLeftRight size={13} />
-                    <span>Comparar</span>
+                    <span>Ver Ficha Técnica</span>
                   </Link>
 
                   <button

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { palasApi } from '../../api/palas';
 import { shopifyApi } from '../../api/shopify';
-import type { Pala, Marca, PalaFilterParams, ShopifyPalaPreview } from '../../types';
+import { padelfulApi } from '../../api/padelful';
+import type { Pala, Marca, PalaFilterParams, ShopifyPalaPreview, PadelfulPalaPreview } from '../../types';
 import { PalaCard } from '../../components/ui/PalaCard';
 import { PalaCardSkeleton } from '../../components/ui/Skeleton';
 import { PalaFinderModal } from '../../components/palas/PalaFinderModal';
@@ -18,7 +19,8 @@ import {
   Filter,
   RotateCcw,
   Sparkles,
-  ArrowLeftRight
+  ArrowLeftRight,
+  Crosshair
 } from 'lucide-react';
 
 export const CatalogoPage: React.FC = () => {
@@ -49,6 +51,16 @@ export const CatalogoPage: React.FC = () => {
   const [shopifyLoading, setShopifyLoading] = useState(false);
   const [shopifySyncing, setShopifySyncing] = useState(false);
   const [shopifySuccessMsg, setShopifySuccessMsg] = useState<string | null>(null);
+
+  // Padelful Modal
+  const [showPadelfulModal, setShowPadelfulModal] = useState(false);
+  const [padelfulSearch, setPadelfulSearch] = useState('');
+  const [padelfulBrand, setPadelfulBrand] = useState('');
+  const [padelfulShape, setPadelfulShape] = useState('');
+  const [padelfulPreviews, setPadelfulPreviews] = useState<PadelfulPalaPreview[]>([]);
+  const [padelfulLoading, setPadelfulLoading] = useState(false);
+  const [padelfulSyncing, setPadelfulSyncing] = useState(false);
+  const [padelfulSuccessMsg, setPadelfulSuccessMsg] = useState<string | null>(null);
 
   // Sincronizar parámetro de búsqueda de la URL
   useEffect(() => {
@@ -145,6 +157,42 @@ export const CatalogoPage: React.FC = () => {
       console.error('Error sincronizando con Shopify:', err);
     } finally {
       setShopifySyncing(false);
+    }
+  };
+
+  const handlePreviewPadelful = async (overrideParams?: { brand?: string; shape?: string; query?: string }) => {
+    setPadelfulLoading(true);
+    setPadelfulSuccessMsg(null);
+    try {
+      const data = await padelfulApi.getRackets({
+        query: overrideParams?.query ?? padelfulSearch,
+        brand: overrideParams?.brand ?? padelfulBrand,
+        shape: overrideParams?.shape ?? padelfulShape,
+        limit: 15,
+      });
+      setPadelfulPreviews(data);
+    } catch (err) {
+      console.error('Error consultando Padelful API:', err);
+    } finally {
+      setPadelfulLoading(false);
+    }
+  };
+
+  const handleSyncPadelful = async () => {
+    setPadelfulSyncing(true);
+    try {
+      const result = await padelfulApi.syncRackets({
+        brand: padelfulBrand || undefined,
+        shape: padelfulShape || undefined,
+        maxItems: 15,
+        overwriteExisting: true,
+      });
+      setPadelfulSuccessMsg(result.mensaje || `¡Sincronización completada! ${result.totalImportados} palas importadas.`);
+      await loadPalas();
+    } catch (err) {
+      console.error('Error sincronizando con Padelful:', err);
+    } finally {
+      setPadelfulSyncing(false);
     }
   };
 
@@ -313,6 +361,19 @@ export const CatalogoPage: React.FC = () => {
           >
             <ShoppingBag size={15} color="var(--padel-turf-green)" />
             <span>Integrador Shopify</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setShowPadelfulModal(true);
+              if (padelfulPreviews.length === 0) handlePreviewPadelful();
+            }}
+            className="btn-secondary"
+            style={{ borderRadius: '0px' }}
+            title="Sincronizar métricas sensoriales y catálogo técnico desde Padelful API"
+          >
+            <Crosshair size={15} color="#38bdf8" />
+            <span>Integrador Padelful</span>
           </button>
 
           <button
@@ -611,6 +672,248 @@ export const CatalogoPage: React.FC = () => {
                   >
                     {shopifySyncing ? 'Sincronizando...' : 'Sincronizar Catálogo'}
                   </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal Integrador Padelful */}
+      {showPadelfulModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(10, 17, 40, 0.88)',
+            backdropFilter: 'blur(12px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 200,
+            padding: '20px',
+          }}
+        >
+          <div
+            className="card-skeuomorphic animate-slide-up"
+            style={{
+              width: '100%',
+              maxWidth: '820px',
+              maxHeight: '92vh',
+              overflowY: 'auto',
+              padding: '28px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Crosshair size={24} color="#38bdf8" />
+                <div>
+                  <h3 style={{ fontSize: '1.35rem', fontWeight: 800, margin: 0 }}>Integrador Padelful API</h3>
+                  <span style={{ fontSize: '0.78rem', color: '#38bdf8', fontWeight: 700 }}>
+                    MÉTRICAS TÉCNICAS SENSORIALES • RADAR DE POTENCIA & CONTROL
+                  </span>
+                </div>
+              </div>
+              <button onClick={() => setShowPadelfulModal(false)} style={{ color: 'var(--text-muted)' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '18px', lineHeight: 1.5 }}>
+              Conecta Palantica a la API de <strong>Padelful</strong> (<code>GET /api/v1/rackets</code>) para importar especificaciones biomecánicas reales: potencias, controles, salidas de bola, puntos dulces, materiales y durezas verificadas.
+            </p>
+
+            {/* Filtros de consulta a Padelful */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+              <input
+                type="text"
+                value={padelfulSearch}
+                onChange={(e) => setPadelfulSearch(e.target.value)}
+                placeholder="Buscar por modelo o jugador (ej: Tapia, Vertex, Lebrón)..."
+                className="input-field"
+                style={{ flex: 2, minWidth: '180px' }}
+                onKeyDown={(e) => { if (e.key === 'Enter') handlePreviewPadelful(); }}
+              />
+              <select
+                value={padelfulBrand}
+                onChange={(e) => {
+                  setPadelfulBrand(e.target.value);
+                  handlePreviewPadelful({ brand: e.target.value });
+                }}
+                className="input-field"
+                style={{ flex: 1, minWidth: '130px' }}
+              >
+                <option value="">Todas las Marcas</option>
+                <option value="Nox">Nox</option>
+                <option value="Bullpadel">Bullpadel</option>
+                <option value="Babolat">Babolat</option>
+                <option value="Adidas">Adidas</option>
+                <option value="Siux">Siux</option>
+                <option value="Head">Head</option>
+                <option value="Kuikma">Kuikma</option>
+              </select>
+              <select
+                value={padelfulShape}
+                onChange={(e) => {
+                  setPadelfulShape(e.target.value);
+                  handlePreviewPadelful({ shape: e.target.value });
+                }}
+                className="input-field"
+                style={{ flex: 1, minWidth: '130px' }}
+              >
+                <option value="">Cualquier Forma</option>
+                <option value="Lagrima">Lágrima</option>
+                <option value="Diamante">Diamante</option>
+                <option value="Redonda">Redonda</option>
+              </select>
+              <button
+                onClick={() => handlePreviewPadelful()}
+                disabled={padelfulLoading}
+                className="btn-secondary"
+                style={{ minWidth: '110px' }}
+              >
+                {padelfulLoading ? <RefreshCw size={15} className="animate-spin" /> : 'Consultar'}
+              </button>
+            </div>
+
+            {padelfulSuccessMsg && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '12px',
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  border: '1px solid var(--padel-turf-green)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--padel-turf-green)',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  marginBottom: '16px',
+                }}
+              >
+                <CheckCircle2 size={18} />
+                <span>{padelfulSuccessMsg}</span>
+              </div>
+            )}
+
+            {padelfulPreviews.length > 0 && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <h4 style={{ fontSize: '0.90rem', fontWeight: 700, margin: 0, color: 'var(--text-secondary)' }}>
+                    Palas identificadas en Padelful ({padelfulPreviews.length}):
+                  </h4>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    Fuente: padelful.com/api/v1/rackets
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '360px', overflowY: 'auto', marginBottom: '20px', paddingRight: '4px' }}>
+                  {padelfulPreviews.map((item, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                        padding: '12px 14px',
+                        background: 'var(--bg-input)',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--border-subtle)',
+                        fontSize: '0.82rem',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                          <div style={{
+                            width: '54px',
+                            height: '54px',
+                            background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.2) 100%)',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border: '1px solid var(--border-subtle)',
+                            flexShrink: 0
+                          }}>
+                            <img
+                              src={item.imagenUrl || 'https://www.padelful.com/images/rackets/nox-at10-luxury-genius-18k-alum-2027-agustin-tapia.png'}
+                              alt={item.modelo}
+                              style={{ maxWidth: '88%', maxHeight: '88%', objectFit: 'contain', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.4))' }}
+                              onError={(e) => {
+                                e.currentTarget.src = 'https://www.padelful.com/images/rackets/nox-at10-luxury-genius-18k-alum-2027-agustin-tapia.png';
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <strong style={{ fontSize: '0.92rem' }}>{item.modelo}</strong>
+                              <span style={{ color: '#38bdf8', fontWeight: 700 }}>• {item.marca}</span>
+                              {item.jugadorPro && (
+                                <span style={{
+                                  fontSize: '0.70rem',
+                                  padding: '1px 6px',
+                                  background: 'rgba(56, 189, 248, 0.15)',
+                                  color: '#38bdf8',
+                                  borderRadius: '4px',
+                                  fontWeight: 600
+                                }}>
+                                  Pro: {item.jugadorPro}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ color: 'var(--text-muted)', fontSize: '0.76rem', marginTop: '2px' }}>
+                              Forma: <strong>{item.forma}</strong> | Balance: <strong>{item.balanceNivel} ({item.balanceMm}mm)</strong> | Dureza: <strong>{item.durezaNivel}</strong> | Núcleo: {item.materialNucleo}
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ fontWeight: 800, color: 'var(--padel-turf-green)', fontSize: '0.95rem' }}>
+                            {item.precio.toFixed(2)} {item.moneda}
+                          </span>
+                          <div style={{ fontSize: '0.74rem', color: '#f59e0b', fontWeight: 700 }}>
+                            ★ {item.puntuacionGeneral.toFixed(1)}/10
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Radar bar preview */}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(5, 1fr)',
+                        gap: '6px',
+                        background: 'rgba(0,0,0,0.18)',
+                        padding: '6px 10px',
+                        borderRadius: '4px',
+                        fontSize: '0.72rem'
+                      }}>
+                        <div>Potencia: <strong style={{ color: '#ef4444' }}>{item.potenciaScore.toFixed(1)}</strong></div>
+                        <div>Control: <strong style={{ color: '#38bdf8' }}>{item.controlScore.toFixed(1)}</strong></div>
+                        <div>Salida bola: <strong style={{ color: '#10b981' }}>{item.salidaBolaScore.toFixed(1)}</strong></div>
+                        <div>Pto. dulce: <strong style={{ color: '#a855f7' }}>{item.puntoDulceScore.toFixed(1)}</strong></div>
+                        <div>Maniobr.: <strong style={{ color: '#f59e0b' }}>{item.maniobrabilidadScore.toFixed(1)}</strong></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    Se sobrescribirán e insertarán en Palantica con atributos de radar completos.
+                  </span>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={() => setShowPadelfulModal(false)} className="btn-secondary">
+                      Cerrar
+                    </button>
+                    <button
+                      onClick={handleSyncPadelful}
+                      disabled={padelfulSyncing}
+                      className="btn-primary"
+                      style={{ background: '#0284c7', borderColor: '#38bdf8' }}
+                    >
+                      {padelfulSyncing ? <RefreshCw size={15} className="animate-spin" /> : 'Sincronizar Catálogo Padelful'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { palasApi } from '../../api/palas';
-import type { Pala, Marca, PalaFilterParams } from '../../types';
+import { padelfulApi, padelfulToPala } from '../../api/padelful';
+import { PadelfulRacketCard } from '../../components/palas/PadelfulRacketCard';
+import type { Pala, Marca, PalaFilterParams, PadelfulPalaPreview } from '../../types';
 import {
   SlidersHorizontal,
   X,
-  Star,
   RotateCcw,
   Sparkles,
   ChevronLeft,
@@ -37,6 +38,7 @@ export const PaletasPage: React.FC = () => {
   };
 
   const [palas, setPalas] = useState<Pala[]>([]);
+  const [padelfulRackets, setPadelfulRackets] = useState<PadelfulPalaPreview[]>([]);
   const [marcas, setMarcas] = useState<Marca[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -74,21 +76,32 @@ export const PaletasPage: React.FC = () => {
   const loadPalas = useCallback(async () => {
     setLoading(true);
     try {
-      const filterParams: PalaFilterParams = {
-        search: search.trim() || undefined,
-        marca: selectedMarca || undefined,
-        forma: selectedForma || undefined,
-        orderBy,
-        page: 1,
-        pageSize: 50,
-      };
+      const rawRackets = await padelfulApi.getRackets({
+        brand: selectedMarca || undefined,
+        shape: selectedForma || undefined,
+        query: search.trim() || undefined,
+        limit: 2500,
+      });
 
-      const response = await palasApi.getPalas(filterParams);
-      if (response && response.items && response.items.length > 0) {
-        setPalas(response.items);
+      if (rawRackets && rawRackets.length > 0) {
+        setPadelfulRackets(rawRackets);
+        const mapped = rawRackets.map((r, i) => padelfulToPala(r, i + 1));
+        setPalas(mapped);
       } else {
-        // Fallback enriquecido de palas si la base de datos está vacía o sin datos
-        setPalas(mockPalasFallback);
+        const filterParams: PalaFilterParams = {
+          search: search.trim() || undefined,
+          marca: selectedMarca || undefined,
+          forma: selectedForma || undefined,
+          orderBy,
+          page: 1,
+          pageSize: 50,
+        };
+        const response = await palasApi.getPalas(filterParams);
+        if (response && response.items && response.items.length > 0) {
+          setPalas(response.items);
+        } else {
+          setPalas(mockPalasFallback);
+        }
       }
     } catch (err) {
       console.error('Error cargando catálogo de palas:', err);
@@ -107,14 +120,22 @@ export const PaletasPage: React.FC = () => {
 
   // Filtrado exhaustivo por distintivos en memoria
   const filteredPalas = useMemo(() => {
-    return palas.filter((pala) => {
-      // Búsqueda por texto (nombre, marca, jugador)
+    // 1. Deduplicación estricta por slug o modelo normalizado
+    const seen = new Set<string>();
+    const uniquePalas = palas.filter((pala) => {
+      const key = (pala.slug || `${pala.marcaNombre}_${pala.modelo}`).toLowerCase().trim();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    return uniquePalas.filter((pala) => {
+      // Búsqueda por palabras (nombre, marca, jugador o slug)
       if (search.trim()) {
-        const query = search.toLowerCase();
-        const matchesName = pala.modelo.toLowerCase().includes(query);
-        const matchesBrand = pala.marcaNombre.toLowerCase().includes(query);
-        const matchesPlayer = pala.jugadorPro?.toLowerCase().includes(query);
-        if (!matchesName && !matchesBrand && !matchesPlayer) return false;
+        const words = search.toLowerCase().trim().split(/\s+/);
+        const fullTarget = `${pala.marcaNombre} ${pala.modelo} ${pala.jugadorPro || ''} ${pala.slug || ''}`.toLowerCase();
+        const matchesAll = words.every((w) => fullTarget.includes(w));
+        if (!matchesAll) return false;
       }
 
       // Marca
@@ -262,6 +283,58 @@ export const PaletasPage: React.FC = () => {
     selectedGenero,
     precioMax < 450 ? precioMax : null,
   ].filter(Boolean).length;
+  // Mapa de acceso rápido O(1) por slug para evitar duplicados y colisiones
+  const previewMap = useMemo(() => {
+    const map = new Map<string, PadelfulPalaPreview>();
+    for (const r of padelfulRackets) {
+      if (r.slug) {
+        map.set(r.slug.toLowerCase().trim(), r);
+      }
+    }
+    return map;
+  }, [padelfulRackets]);
+
+  const getPadelfulPreview = useCallback((pala: Pala): PadelfulPalaPreview => {
+    // 1. Coincidencia exacta por slug (evita colisiones entre modelos similares como Vertex 05 vs Vertex 05 GEO)
+    if (pala.slug) {
+      const bySlug = previewMap.get(pala.slug.toLowerCase().trim());
+      if (bySlug) return bySlug;
+    }
+
+    // 2. Coincidencia exacta por modelo
+    const exact = padelfulRackets.find(
+      (r) =>
+        r.slug.toLowerCase() === (pala.slug || '').toLowerCase() ||
+        r.modelo.toLowerCase() === pala.modelo.toLowerCase()
+    );
+    if (exact) return exact;
+
+    return {
+      slug: pala.slug || (pala.modelo || 'pala').toLowerCase().replace(/\s+/g, '-'),
+      marca: pala.marcaNombre,
+      modelo: pala.modelo,
+      forma: pala.forma,
+      balanceMm: pala.balanceMm || 265,
+      balanceNivel: pala.balanceNivel || 'Medio',
+      materialNucleo: pala.materialNucleo || 'Black EVA',
+      materialCaras: pala.materialCaras || 'Carbono 12K',
+      durezaNivel: pala.durezaNivel || 'Media',
+      durezaScore: pala.durezaPromedio || 7.0,
+      potenciaScore: pala.potenciaPromedio || 8.5,
+      controlScore: pala.controlPromedio || 8.5,
+      salidaBolaScore: 8.0,
+      maniobrabilidadScore: 8.5,
+      puntoDulceScore: 8.5,
+      puntuacionGeneral: pala.puntuacionGeneral || 9.2,
+      precio: pala.precioReferencia || 290,
+      moneda: pala.monedaPrecio || 'EUR',
+      imagenUrl: pala.imagenUrl || 'https://www.padelful.com/images/rackets/nox-at10-luxury-genius-18k-alum-2027-agustin-tapia.png',
+      descripcion: `Pala ${pala.modelo} de la marca ${pala.marcaNombre}.`,
+      jugadorPro: pala.jugadorPro,
+      anoLanzamiento: pala.anoLanzamiento || 2026,
+      fuenteOriginal: '',
+    };
+  }, [padelfulRackets, previewMap]);
 
   return (
     <div className="w-full flex flex-col gap-6 animate-fade-in pb-16">
@@ -280,9 +353,11 @@ export const PaletasPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Contador y Orden */}
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+        {/* Contador, Toggle de Fuente y Orden */}
+        <div className="flex flex-wrap items-center gap-3">
+
+
+          <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider hidden sm:inline">
             {sortedPalas.length} {sortedPalas.length === 1 ? 'Paleta' : 'Paletas'}
           </span>
 
@@ -720,107 +795,10 @@ export const PaletasPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {paginatedPalas.map((pala) => (
-                <Link
-                  key={pala.id}
-                  to={`/paletas/${pala.id}`}
-                  className="group relative rounded-3xl bg-[var(--bg-surface)] border border-white/10 hover:border-emerald-500/50 shadow-xl overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-500/10"
-                >
-                  {/* Foto de la pala */}
-                  <div className="relative w-full h-64 bg-zinc-950/80 overflow-hidden flex items-center justify-center p-4">
-                    <img
-                      src={
-                        pala.imagenUrl ||
-                        'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=600&q=80'
-                      }
-                      alt={`${pala.marcaNombre} ${pala.modelo}`}
-                      className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src =
-                          'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=600&q=80';
-                      }}
-                    />
-
-                    {/* Chips superiores */}
-                    <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/80 backdrop-blur-md text-emerald-400 border border-emerald-400/30">
-                        {pala.forma}
-                      </span>
-                      {pala.anoLanzamiento && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-900/80 text-zinc-300 border border-white/10">
-                          {pala.anoLanzamiento}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Calificación */}
-                    <div className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/80 backdrop-blur-md text-amber-400 font-extrabold text-xs border border-amber-400/30">
-                      <Star size={12} className="fill-amber-400 text-amber-400" />
-                      <span>{(pala.puntuacionGeneral || 9.0).toFixed(1)}</span>
-                    </div>
-                  </div>
-
-                  {/* Cuerpo de la card con distintivos técnicos */}
-                  <div className="p-5 flex flex-col flex-1 justify-between gap-4">
-                    <div>
-                      <div className="text-xs font-extrabold text-emerald-400 uppercase tracking-wider">
-                        {pala.marcaNombre}
-                      </div>
-                      <h3 className="text-lg font-black text-white tracking-tight leading-snug group-hover:text-emerald-300 transition-colors">
-                        {pala.modelo}
-                      </h3>
-                      {pala.jugadorPro && (
-                        <div className="text-[11px] text-zinc-400 mt-0.5">
-                          Pala oficial de <span className="text-zinc-200 font-semibold">{pala.jugadorPro}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Fila de distintivos técnicos */}
-                    <div className="grid grid-cols-2 gap-2 text-[11px] pt-3 border-t border-white/5">
-                      <div className="flex flex-col">
-                        <span className="text-zinc-400 text-[10px] font-bold uppercase">Balance</span>
-                        <span className="font-semibold text-white">
-                          {pala.balanceMm ? `${pala.balanceMm} mm` : 'Medio (265mm)'}
-                        </span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-zinc-400 text-[10px] font-bold uppercase">Dureza</span>
-                        <span className="font-semibold text-emerald-400">
-                          {pala.durezaPromedio ? `${pala.durezaPromedio.toFixed(1)}/10` : 'Media-Dura'}
-                        </span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-zinc-400 text-[10px] font-bold uppercase">Caras</span>
-                        <span className="font-semibold text-white truncate">
-                          {pala.materialCaras || 'Carbono 12K'}
-                        </span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-zinc-400 text-[10px] font-bold uppercase">Núcleo</span>
-                        <span className="font-semibold text-white truncate">
-                          {pala.materialNucleo || 'Black EVA'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Pie de card: Precio e icono ver ficha */}
-                    <div className="flex items-center justify-between pt-3 border-t border-white/10">
-                      <div>
-                        <span className="text-[10px] text-zinc-400 block font-bold uppercase">
-                          Precio Referencia
-                        </span>
-                        <span className="text-lg font-black text-white">
-                          ${pala.precioReferencia || 280}
-                        </span>
-                      </div>
-
-                      <span className="inline-flex items-center gap-1 text-xs font-extrabold text-emerald-400 group-hover:translate-x-1 transition-transform">
-                        <span>Ver Ficha</span>
-                        <ChevronRight size={14} />
-                      </span>
-                    </div>
-                  </div>
-                </Link>
+                <PadelfulRacketCard
+                  key={pala.slug || `pala-${pala.id}`}
+                  racket={getPadelfulPreview(pala)}
+                />
               ))}
             </div>
           )}
@@ -883,7 +861,7 @@ const mockPalasFallback: Pala[] = [
     totalVotos: 120,
     nivelJuego: 'Profesional',
     genero: 'Unisex',
-    imagenUrl: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=600&q=80',
+    imagenUrl: 'https://www.padelful.com/images/rackets/bullpadel-vertex-04-2024.png',
   },
   {
     id: 2,
@@ -909,7 +887,7 @@ const mockPalasFallback: Pala[] = [
     totalVotos: 240,
     nivelJuego: 'Avanzado',
     genero: 'Unisex',
-    imagenUrl: 'https://images.unsplash.com/photo-1599586120429-48281b6f0ece?auto=format&fit=crop&w=600&q=80',
+    imagenUrl: 'https://www.padelful.com/images/rackets/nox-at10-luxury-genius-18k-alum-2027-agustin-tapia.png',
   },
   {
     id: 3,
@@ -935,7 +913,7 @@ const mockPalasFallback: Pala[] = [
     totalVotos: 180,
     nivelJuego: 'Profesional',
     genero: 'Hombre',
-    imagenUrl: 'https://images.unsplash.com/photo-1544919982-b61976f0ba43?auto=format&fit=crop&w=600&q=80',
+    imagenUrl: 'https://www.padelful.com/images/rackets/babolat-technical-viper-juan-lebron-2026.png',
   },
   {
     id: 4,
@@ -961,7 +939,7 @@ const mockPalasFallback: Pala[] = [
     totalVotos: 88,
     nivelJuego: 'Avanzado',
     genero: 'Unisex',
-    imagenUrl: 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=600&q=80',
+    imagenUrl: 'https://www.padelful.com/images/rackets/siux-electra-st3-pro-franco-stupaczuk-2024.png',
   },
   {
     id: 5,
@@ -987,7 +965,7 @@ const mockPalasFallback: Pala[] = [
     totalVotos: 95,
     nivelJuego: 'Profesional',
     genero: 'Unisex',
-    imagenUrl: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=600&q=80',
+    imagenUrl: 'https://www.padelful.com/images/rackets/head-extreme-pro-arturo-coello-2026.png',
   },
   {
     id: 6,
@@ -1013,6 +991,6 @@ const mockPalasFallback: Pala[] = [
     totalVotos: 210,
     nivelJuego: 'Profesional',
     genero: 'Hombre',
-    imagenUrl: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=600&q=80',
+    imagenUrl: 'https://www.padelful.com/images/rackets/adidas-metalbone-33-ale-galan-2024.png',
   },
 ];

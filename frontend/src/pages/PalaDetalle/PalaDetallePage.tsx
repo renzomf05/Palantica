@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { palasApi } from '../../api/palas';
+import { padelfulApi, padelfulToPalaDetalle } from '../../api/padelful';
 import { resenasApi } from '../../api/resenas';
 import { votacionesApi } from '../../api/votaciones';
 import { paleteroApi } from '../../api/paletero';
@@ -74,40 +75,79 @@ export const PalaDetallePage: React.FC = () => {
   const [paleteroSuccess, setPaleteroSuccess] = useState(false);
 
   const cargarDatos = React.useCallback(async () => {
-    if (!palaId) return;
-    try {
-      const palaData = await palasApi.getPalaDetalle(palaId);
-      setPala(palaData);
+    if (!id) return;
+    setLoading(true);
+    let palaData: PalaDetalle | null = null;
 
-      setVotoDureza(Math.round(palaData.durezaPromedio));
-      setVotoPotencia(Math.round(palaData.potenciaPromedio));
-      setVotoControl(Math.round(palaData.controlPromedio));
-      setVotoSalidaBola(Math.round(palaData.salidaBolaPromedio));
-      setVotoManiobrabilidad(Math.round(palaData.maniobrabilidadPromedio));
-      setVotoPuntoDulce(Math.round(palaData.puntoDulcePromedio));
-      setVotoConfort(Math.round(palaData.confortPromedio));
-    } catch (err) {
-      console.error('Error cargando ficha de pala:', err);
-    } finally {
-      setLoading(false);
+    // 1. Intentar por ID numérico en la API local si es un número válido menor a 90000
+    if (!isNaN(palaId) && palaId > 0 && palaId < 90000) {
+      try {
+        palaData = await palasApi.getPalaDetalle(palaId);
+      } catch {
+        palaData = null;
+      }
     }
 
+    // 2. Si no se encontró en la BD, consultar por slug en Padelful
+    if (!palaData && id) {
+      try {
+        const racket = await padelfulApi.getRacketBySlug(id);
+        if (racket) {
+          palaData = padelfulToPalaDetalle(racket, isNaN(palaId) ? 1 : palaId);
+        }
+      } catch (slugErr) {
+        console.warn('Búsqueda por slug en Padelful:', slugErr);
+      }
+
+      // 3. Si aún no se encontró, buscar en el listado curado de Padelful
+      if (!palaData) {
+        try {
+          const allRackets = await padelfulApi.getRackets({ limit: 50 });
+          const match = allRackets.find(
+            (r) =>
+              r.slug.toLowerCase() === id.toLowerCase() ||
+              id.toLowerCase().includes(r.slug.toLowerCase()) ||
+              r.modelo.toLowerCase().includes(id.toLowerCase())
+          );
+          if (match) {
+            palaData = padelfulToPalaDetalle(match, 1);
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    if (palaData) {
+      setPala(palaData);
+      setVotoDureza(Math.round(palaData.durezaPromedio || 7));
+      setVotoPotencia(Math.round(palaData.potenciaPromedio || 8));
+      setVotoControl(Math.round(palaData.controlPromedio || 8));
+      setVotoSalidaBola(Math.round(palaData.salidaBolaPromedio || 8));
+      setVotoManiobrabilidad(Math.round(palaData.maniobrabilidadPromedio || 8));
+      setVotoPuntoDulce(Math.round(palaData.puntoDulcePromedio || 8));
+      setVotoConfort(Math.round(palaData.confortPromedio || 8));
+    }
+    setLoading(false);
+
+    // Cargar reseñas si hay palaId válido
+    const targetId = !isNaN(palaId) && palaId > 0 ? palaId : 1;
     try {
-      const resenasData = await resenasApi.getResenasPorPala(palaId, 1, 10);
-      setResenas(resenasData.items);
-    } catch (err) {
-      console.error('Error cargando reseñas:', err);
+      const resenasData = await resenasApi.getResenasPorPala(targetId, 1, 10);
+      setResenas(resenasData?.items || []);
+    } catch {
+      setResenas([]);
     } finally {
       setLoadingResenas(false);
     }
 
     try {
-      const padelgramData = await padelgramApi.getFeed(1, 6, palaId);
-      setPadelgramPosts(padelgramData.items);
-    } catch (err) {
-      console.error('Error cargando Padelgram reel:', err);
+      const padelgramData = await padelgramApi.getFeed(1, 6, targetId);
+      setPadelgramPosts(padelgramData?.items || []);
+    } catch {
+      setPadelgramPosts([]);
     }
-  }, [palaId]);
+  }, [id, palaId]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -335,15 +375,6 @@ export const PalaDetallePage: React.FC = () => {
                 <Briefcase size={16} />
                 <span>Guardar en Mi Paletero</span>
               </button>
-
-              <Link
-                to={`/comparador?pala1=${pala.id}`}
-                className="btn-secondary"
-                style={{ width: '100%', borderRadius: '0px' }}
-              >
-                <ArrowLeftRight size={15} />
-                <span>Comparar A/B con otra pala</span>
-              </Link>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <button

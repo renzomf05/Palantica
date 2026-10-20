@@ -8,7 +8,6 @@ import { PalaDetallePage } from './pages/PalaDetalle/PalaDetallePage';
 import { FeedPage } from './pages/Feed/FeedPage';
 import { ForoPage } from './pages/Foro/ForoPage';
 import { AboutPage } from './pages/About/AboutPage';
-import { ComparadorPage } from './pages/Comparador/ComparadorPage';
 import { PaleteroPage } from './pages/Paletero/PaleteroPage';
 import { PerfilPage } from './pages/Perfil/PerfilPage';
 import { LoginPage } from './pages/Auth/LoginPage';
@@ -45,12 +44,13 @@ export const App: React.FC = () => {
             <Route path="/foro" element={<ForoPage />} />
             <Route path="/about" element={<AboutPage />} />
 
-            {/* Redirecciones de rutas previas */}
+            {/* Redirecciones de rutas auxiliares */}
+            <Route path="/catalogo-padelful" element={<Navigate to="/paletas" replace />} />
             <Route path="/catalogo" element={<Navigate to="/paletas" replace />} />
+            <Route path="/comparador" element={<Navigate to="/paletas" replace />} />
             <Route path="/padelgram" element={<Navigate to="/feed" replace />} />
 
             {/* Funcionalidades auxiliares */}
-            <Route path="/comparador" element={<ComparadorPage />} />
             <Route path="/paletero" element={<PaleteroPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
             <Route path="/login" element={<LoginPage />} />

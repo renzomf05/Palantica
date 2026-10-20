@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { palasApi } from '../../api/palas';
+import { padelfulApi, padelfulToPala, padelfulToPalaDetalle } from '../../api/padelful';
 import type { PalaDetalle, Pala } from '../../types';
 import { DualRadarChart } from '../../components/palas/DualRadarChart';
 import { Skeleton } from '../../components/ui/Skeleton';
@@ -19,6 +20,7 @@ export const ComparadorPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const pala1IdParam = searchParams.get('pala1');
   const pala2IdParam = searchParams.get('pala2');
+  const padelfulParam = searchParams.get('padelful');
 
   const [todasLasPalas, setTodasLasPalas] = useState<Pala[]>([]);
   const [pala1, setPala1] = useState<PalaDetalle | null>(null);
@@ -27,12 +29,26 @@ export const ComparadorPage: React.FC = () => {
   const [selectorOpenSlot, setSelectorOpenSlot] = useState<1 | 2 | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Carga inicial del catálogo para selector
+  // Carga inicial del catálogo para selector (combina BD y Padelful)
   useEffect(() => {
     const fetchCatalogo = async () => {
       try {
-        const res = await palasApi.getPalas({ pageSize: 50 });
-        setTodasLasPalas(res.items);
+        const [dbRes, padelfulList] = await Promise.all([
+          palasApi.getPalas({ pageSize: 50 }).catch(() => null),
+          padelfulApi.getRackets({ limit: 50 }).catch(() => []),
+        ]);
+
+        const dbItems = dbRes?.items || [];
+        const padelfulMapped = (padelfulList || []).map((r, i) => padelfulToPala(r, i + 1));
+
+        // Combinar sin duplicados de modelo
+        const combined = [...dbItems];
+        for (const p of padelfulMapped) {
+          if (!combined.some((c) => c.modelo.toLowerCase() === p.modelo.toLowerCase())) {
+            combined.push(p);
+          }
+        }
+        setTodasLasPalas(combined);
       } catch (err) {
         console.error('Error al cargar palas para el comparador:', err);
       }
@@ -48,10 +64,41 @@ export const ComparadorPage: React.FC = () => {
         const id1 = pala1IdParam ? parseInt(pala1IdParam, 10) : 1;
         const id2 = pala2IdParam ? parseInt(pala2IdParam, 10) : 2;
 
-        const [p1, p2] = await Promise.all([
-          palasApi.getPalaDetalle(id1).catch(() => null),
-          palasApi.getPalaDetalle(id2).catch(() => null),
-        ]);
+        const padelfulRackets = await padelfulApi.getRackets({ limit: 50 }).catch(() => []);
+
+        let p1: PalaDetalle | null = null;
+        let p2: PalaDetalle | null = null;
+
+        // Si viene el query param padelful (ej: ?padelful=nox-at10...)
+        if (padelfulParam && padelfulRackets.length > 0) {
+          const match1 = padelfulRackets.find(
+            (r) => r.slug === padelfulParam || r.modelo.toLowerCase().includes(padelfulParam.toLowerCase())
+          ) || padelfulRackets[0];
+          const match2 = padelfulRackets.find((r) => r.slug !== match1.slug) || padelfulRackets[1];
+
+          p1 = padelfulToPalaDetalle(match1, 1);
+          p2 = padelfulToPalaDetalle(match2, 2);
+        } else {
+          // Intentar primero desde la API local si los IDs son menores a 90000
+          if (id1 < 90000) {
+            p1 = await palasApi.getPalaDetalle(id1).catch(() => null);
+          }
+          if (id2 < 90000) {
+            p2 = await palasApi.getPalaDetalle(id2).catch(() => null);
+          }
+
+          // Si faltan, resolver desde Padelful
+          if (!p1 && padelfulRackets.length > 0) {
+            const index = id1 >= 90000 ? id1 - 90001 : 0;
+            const r1 = padelfulRackets[Math.min(Math.max(0, index), padelfulRackets.length - 1)] || padelfulRackets[0];
+            p1 = padelfulToPalaDetalle(r1, id1);
+          }
+          if (!p2 && padelfulRackets.length > 1) {
+            const index = id2 >= 90000 ? id2 - 90001 : 1;
+            const r2 = padelfulRackets[Math.min(Math.max(0, index), padelfulRackets.length - 1)] || padelfulRackets[1];
+            p2 = padelfulToPalaDetalle(r2, id2);
+          }
+        }
 
         setPala1(p1);
         setPala2(p2);
@@ -63,7 +110,7 @@ export const ComparadorPage: React.FC = () => {
     };
 
     cargarPalas();
-  }, [pala1IdParam, pala2IdParam]);
+  }, [pala1IdParam, pala2IdParam, padelfulParam]);
 
   // Selección de una pala para un slot
   const handleSelectPala = (slot: 1 | 2, id: number) => {

@@ -12,6 +12,7 @@ using Palantica.Api.Features.Palas;
 using Palantica.Api.Features.Paletero;
 using Palantica.Api.Features.Resenas;
 using Palantica.Api.Features.Shopify;
+using Palantica.Api.Features.Padelful;
 using Palantica.Api.Features.Votaciones;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +31,7 @@ builder.Services.AddScoped<PalaRepository>();
 builder.Services.AddSingleton<PalaSimilarityEngine>();
 builder.Services.AddSingleton<NoticiasService>();
 builder.Services.AddSingleton<ShopifyService>();
+builder.Services.AddSingleton<PadelfulService>();
 builder.Services.AddScoped<ResenaRepository>();
 builder.Services.AddScoped<VotacionRepository>();
 builder.Services.AddScoped<PaleteroRepository>();
@@ -191,5 +193,6 @@ app.MapVotacionEndpoints();
 app.MapPaleteroEndpoints();
 app.MapPadelgramEndpoints();
 app.MapShopifyEndpoints();
+app.MapPadelfulEndpoints();
 
 app.Run();

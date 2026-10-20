@@ -18,6 +18,7 @@ export interface Marca {
 
 export interface Pala {
   id: number;
+  slug?: string;
   marcaId: number;
   marcaNombre: string;
   marcaLogoUrl?: string | null;
@@ -101,6 +102,56 @@ export interface ShopifySyncResult {
   totalImportados: number;
   totalOmitidos: number;
   palasSincronizadas: ShopifyPalaPreview[];
+}
+
+export interface PadelfulPalaPreview {
+  slug: string;
+  marca: string;
+  modelo: string;
+  forma: string;
+  balanceMm: number;
+  balanceNivel: string;
+  materialNucleo: string;
+  materialCaras: string;
+  durezaNivel: string;
+  durezaScore: number;
+  potenciaScore: number;
+  controlScore: number;
+  salidaBolaScore: number;
+  maniobrabilidadScore: number;
+  puntoDulceScore: number;
+  puntuacionGeneral: number;
+  precio: number;
+  moneda: string;
+  imagenUrl?: string | null;
+  descripcion?: string | null;
+  jugadorPro?: string | null;
+  anoLanzamiento: number;
+  fuenteOriginal: string;
+}
+
+export interface PadelfulFilterParams {
+  query?: string;
+  brand?: string;
+  shape?: string;
+  minRating?: number;
+  limit?: number;
+  offset?: number;
+}
+
+export interface PadelfulSyncRequest {
+  brand?: string;
+  shape?: string;
+  maxItems?: number;
+  overwriteExisting?: boolean;
+}
+
+export interface PadelfulSyncResult {
+  totalEncontrados: number;
+  totalImportados: number;
+  totalOmitidos: number;
+  palasSincronizadas: PadelfulPalaPreview[];
+  mensaje: string;
 }
 
 export interface PalaFilterParams {
