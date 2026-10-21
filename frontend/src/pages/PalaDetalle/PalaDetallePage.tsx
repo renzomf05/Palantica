@@ -73,6 +73,8 @@ export const PalaDetallePage: React.FC = () => {
   const [paleteroCat, setPaleteroCat] = useState<CategoriaPaletero>('Usando actualmente');
   const [paleteroNotas, setPaleteroNotas] = useState('');
   const [paleteroSuccess, setPaleteroSuccess] = useState(false);
+  const [paleteroLoading, setPaleteroLoading] = useState(false);
+  const [paleteroError, setPaleteroError] = useState<string | null>(null);
 
   const cargarDatos = React.useCallback(async () => {
     if (!id) return;
@@ -88,15 +90,24 @@ export const PalaDetallePage: React.FC = () => {
       }
     }
 
-    // 2. Si no se encontró en la BD, consultar por slug en Padelful
+    // 2. Si no es numérico o no se encontró por ID, consultar por slug directamente en palasApi
     if (!palaData && id) {
       try {
-        const racket = await padelfulApi.getRacketBySlug(id);
-        if (racket) {
-          palaData = padelfulToPalaDetalle(racket, isNaN(palaId) ? 1 : palaId);
+        palaData = await palasApi.getPalaBySlug(id);
+      } catch {
+        palaData = null;
+      }
+
+      // 3. Si aún no se encontró, consultar por slug en Padelful
+      if (!palaData) {
+        try {
+          const racket = await padelfulApi.getRacketBySlug(id);
+          if (racket) {
+            palaData = padelfulToPalaDetalle(racket, isNaN(palaId) ? 1 : palaId);
+          }
+        } catch (slugErr) {
+          console.warn('Búsqueda por slug en Padelful:', slugErr);
         }
-      } catch (slugErr) {
-        console.warn('Búsqueda por slug en Padelful:', slugErr);
       }
 
       // 3. Si aún no se encontró, buscar en el listado curado de Padelful
@@ -131,7 +142,7 @@ export const PalaDetallePage: React.FC = () => {
     setLoading(false);
 
     // Cargar reseñas si hay palaId válido
-    const targetId = !isNaN(palaId) && palaId > 0 ? palaId : 1;
+    const targetId = palaData?.id ?? (!isNaN(palaId) && palaId > 0 ? palaId : 1);
     try {
       const resenasData = await resenasApi.getResenasPorPala(targetId, 1, 10);
       setResenas(resenasData?.items || []);
@@ -161,8 +172,14 @@ export const PalaDetallePage: React.FC = () => {
     e.preventDefault();
     setResenaError(null);
     setResenaEnviando(true);
+    const activePalaId = pala?.id ?? palaId;
+    if (!activePalaId || isNaN(activePalaId) || activePalaId <= 0) {
+      setResenaError('No se pudo identificar la pala para enviar la reseña.');
+      setResenaEnviando(false);
+      return;
+    }
     try {
-      await resenasApi.publicarResena(palaId, {
+      await resenasApi.publicarResena(activePalaId, {
         puntuacion: resenaPuntuacion,
         titulo: resenaTitulo,
         contenido: resenaContenido,
@@ -183,8 +200,13 @@ export const PalaDetallePage: React.FC = () => {
   const handleEmitirVoto = async (e: React.FormEvent) => {
     e.preventDefault();
     setVotoEnviando(true);
+    const activePalaId = pala?.id ?? palaId;
+    if (!activePalaId || isNaN(activePalaId) || activePalaId <= 0) {
+      setVotoEnviando(false);
+      return;
+    }
     try {
-      await votacionesApi.emitirVoto(palaId, {
+      await votacionesApi.emitirVoto(activePalaId, {
         durezaPercibida: votoDureza,
         potencia: votoPotencia,
         control: votoControl,
@@ -204,9 +226,29 @@ export const PalaDetallePage: React.FC = () => {
   };
 
   const handleAgregarPaletero = async () => {
+    setPaleteroError(null);
+
+    if (!isAuthenticated) {
+      setPaleteroError('Debes iniciar sesión para guardar palas en tu paletero.');
+      return;
+    }
+
+    const targetPalaId = pala?.id ?? (!isNaN(palaId) && palaId > 0 ? palaId : null);
+
+    if (!targetPalaId || targetPalaId <= 0) {
+      setPaleteroError('No se pudo identificar la pala para guardar.');
+      return;
+    }
+
+    if (targetPalaId >= 90000) {
+      setPaleteroError('Esta pala proviene del catálogo externo y aún no fue sincronizada con la base de datos.');
+      return;
+    }
+
+    setPaleteroLoading(true);
     try {
       await paleteroApi.addItem({
-        palaId,
+        palaId: targetPalaId,
         categoria: paleteroCat,
         notas: paleteroNotas || undefined,
       });
@@ -215,8 +257,12 @@ export const PalaDetallePage: React.FC = () => {
         setPaleteroSuccess(false);
         setShowPaleteroModal(false);
       }, 1500);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error al agregar al paletero:', err);
+      const msg = err?.message || err?.error || 'Error al guardar en el paletero.';
+      setPaleteroError(msg);
+    } finally {
+      setPaleteroLoading(false);
     }
   };
 
@@ -368,7 +414,14 @@ export const PalaDetallePage: React.FC = () => {
             {/* Botones de Acción Primaria */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <button
-                onClick={() => (isAuthenticated ? setShowPaleteroModal(true) : alert('Iniciá sesión para guardar palas en tu paletero.'))}
+                onClick={() => {
+                  setPaleteroError(null);
+                  if (isAuthenticated) {
+                    setShowPaleteroModal(true);
+                  } else {
+                    alert('Iniciá sesión para guardar palas en tu paletero.');
+                  }
+                }}
                 className="btn-primary"
                 style={{ width: '100%', borderRadius: '0px' }}
               >
@@ -1032,12 +1085,39 @@ export const PalaDetallePage: React.FC = () => {
                   />
                 </div>
 
+                {paleteroError && (
+                  <div
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.4)',
+                      color: '#f87171',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {paleteroError}
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
-                  <button onClick={() => setShowPaleteroModal(false)} className="btn-secondary" style={{ flex: 1 }}>
+                  <button
+                    disabled={paleteroLoading}
+                    onClick={() => setShowPaleteroModal(false)}
+                    className="btn-secondary"
+                    style={{ flex: 1 }}
+                  >
                     Cancelar
                   </button>
-                  <button onClick={handleAgregarPaletero} className="btn-primary" style={{ flex: 1 }}>
-                    Guardar
+                  <button
+                    onClick={handleAgregarPaletero}
+                    disabled={paleteroLoading}
+                    className="btn-primary"
+                    style={{ flex: 1, opacity: paleteroLoading ? 0.7 : 1 }}
+                  >
+                    {paleteroLoading ? 'Guardando...' : 'Guardar'}
                   </button>
                 </div>
               </div>

@@ -42,17 +42,33 @@ public sealed class PadelgramRepository
         pageSize = Math.Clamp(pageSize, 1, 50);
         var offset = (page - 1) * pageSize;
 
-        var query = "select=*,usuarios(nombre,avatar_url),palas(modelo,marcas(nombre))&order=fecha_publicacion.desc";
-        if (palaId.HasValue)
+        try
         {
-            query += $"&pala_id=eq.{palaId.Value}";
+            var query = "select=*,usuarios(nombre,avatar_url),palas(modelo,marcas(nombre))&order=fecha_publicacion.desc";
+            if (palaId.HasValue)
+            {
+                query += $"&pala_id=eq.{palaId.Value}";
+            }
+            query += $"&limit={pageSize}&offset={offset}";
+
+            var (rawItems, totalCount) = await client.GetListAsync<PadelgramRawRecord>("padelgram_posts", query, cancellationToken);
+            var list = rawItems.Select(mapToResponse).ToList();
+            return new PagedList<PadelgramPostResponse>(list, page, pageSize, totalCount);
         }
-        query += $"&limit={pageSize}&offset={offset}";
-
-        var (rawItems, totalCount) = await client.GetListAsync<PadelgramRawRecord>("padelgram_posts", query, cancellationToken);
-        var list = rawItems.Select(mapToResponse).ToList();
-
-        return new PagedList<PadelgramPostResponse>(list, page, pageSize, totalCount);
+        catch
+        {
+            try
+            {
+                var fallbackQuery = $"select=*&order=fecha_publicacion.desc&limit={pageSize}&offset={offset}";
+                var (rawItems, totalCount) = await client.GetListAsync<PadelgramRawRecord>("padelgram_posts", fallbackQuery, cancellationToken);
+                var list = rawItems.Select(mapToResponse).ToList();
+                return new PagedList<PadelgramPostResponse>(list, page, pageSize, totalCount);
+            }
+            catch
+            {
+                return new PagedList<PadelgramPostResponse>(Array.Empty<PadelgramPostResponse>(), page, pageSize, 0);
+            }
+        }
     }
 
     public async Task<PadelgramPostResponse> CreatePostAsync(
@@ -79,12 +95,35 @@ public sealed class PadelgramRepository
         return mapToResponse(fullRecord ?? created);
     }
 
-    public async Task<int> ToggleLikeAsync(int postId, CancellationToken cancellationToken = default)
+    public async Task<int> ToggleLikeAsync(int postId, int? userId = null, CancellationToken cancellationToken = default)
     {
         if (postId <= 0) throw new ArgumentOutOfRangeException(nameof(postId));
 
         var current = await client.GetSingleAsync<PadelgramRawRecord>("padelgram_posts", $"id=eq.{postId}&select=likes_count", cancellationToken);
-        var newCount = (current?.LikesCount ?? 0) + 1;
+        var currentCount = current?.LikesCount ?? 0;
+        var newCount = currentCount + 1;
+
+        if (userId.HasValue && userId.Value > 0)
+        {
+            try
+            {
+                var existingLike = await client.GetSingleAsync<dynamic>("padelgram_likes", $"post_id=eq.{postId}&usuario_id=eq.{userId.Value}", cancellationToken);
+                if (existingLike is not null)
+                {
+                    await client.DeleteAsync("padelgram_likes", $"post_id=eq.{postId}&usuario_id=eq.{userId.Value}", cancellationToken);
+                    newCount = Math.Max(0, currentCount - 1);
+                }
+                else
+                {
+                    await client.InsertAsync<dynamic>("padelgram_likes", new { post_id = postId, usuario_id = userId.Value }, cancellationToken);
+                    newCount = currentCount + 1;
+                }
+            }
+            catch
+            {
+                newCount = currentCount + 1;
+            }
+        }
 
         await client.UpdateAsync<dynamic>("padelgram_posts", $"id=eq.{postId}", new { likes_count = newCount }, cancellationToken);
         return newCount;

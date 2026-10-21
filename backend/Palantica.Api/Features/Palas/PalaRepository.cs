@@ -45,6 +45,10 @@ public sealed class PalaRepository
         string? Descripcion,
         int TotalResenas,
         int TotalVotos,
+        string? Slug = null,
+        string? MonedaPrecio = null,
+        string? FuentePrecio = null,
+        string? PadelfulUrl = null,
         MarcaJoined? Marcas = null
     );
 
@@ -140,6 +144,19 @@ public sealed class PalaRepository
     }
 
     /// <summary>
+    /// Obtiene la ficha sagrada completa de una pala por su slug canónico.
+    /// </summary>
+    public async Task<PalaDetalleResponse?> GetBySlugAsync(string slug, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(slug)) throw new ArgumentException("Slug cannot be empty", nameof(slug));
+
+        var pala = await client.GetSingleAsync<PalaRawRecord>("palas", $"slug=eq.{Uri.EscapeDataString(slug.Trim())}&select=*,marcas(*)", cancellationToken);
+        if (pala is null) return null;
+
+        return mapToPalaDetalleResponse(pala);
+    }
+
+    /// <summary>
     /// Obtiene todas las palas resumidas para alimentar el motor de similitud vectorial o listados globales.
     /// </summary>
     public async Task<IReadOnlyList<PalaListResponse>> GetAllForSimilarityAsync(CancellationToken cancellationToken = default)
@@ -204,7 +221,8 @@ public sealed class PalaRepository
             AnoLanzamiento: p.AnoLanzamiento,
             JugadorPro: p.JugadorPro,
             TotalResenas: p.TotalResenas,
-            TotalVotos: p.TotalVotos
+            TotalVotos: p.TotalVotos,
+            Slug: p.Slug
         );
     }
 
@@ -245,7 +263,9 @@ public sealed class PalaRepository
             JugadorPro: p.JugadorPro,
             Descripcion: p.Descripcion,
             TotalResenas: p.TotalResenas,
-            TotalVotos: p.TotalVotos
+            TotalVotos: p.TotalVotos,
+            PalasSimilares: null,
+            Slug: p.Slug
         );
     }
 }

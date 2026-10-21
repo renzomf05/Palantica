@@ -15,6 +15,8 @@ public sealed class PadelfulService
     private readonly HttpClient httpClient;
     private readonly SupabaseRestClient supabaseClient;
     private readonly ILogger<PadelfulService> logger;
+    private readonly string baseUrl;
+    private readonly string? apiKey;
 
     // =========================================================================
     // Protección de Costos: Circuit Breaker & Rate Limiter Anti-Cobro
@@ -38,16 +40,88 @@ public sealed class PadelfulService
         PropertyNameCaseInsensitive = true
     };
 
-    public PadelfulService(SupabaseRestClient supabaseClient, ILogger<PadelfulService> logger)
+    public PadelfulService(SupabaseRestClient supabaseClient, ILogger<PadelfulService> logger, IConfiguration configuration)
     {
         this.supabaseClient = supabaseClient ?? throw new ArgumentNullException(nameof(supabaseClient));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        this.apiKey = configuration["Padelful:ApiKey"];
+        var rawBaseUrl = configuration["Padelful:BaseUrl"];
+        this.baseUrl = string.IsNullOrWhiteSpace(rawBaseUrl)
+            ? "https://www.padelful.com/api/v1"
+            : rawBaseUrl.TrimEnd('/');
+
         this.httpClient = new HttpClient
         {
             Timeout = TimeSpan.FromSeconds(6)
         };
         this.httpClient.DefaultRequestHeaders.Add("User-Agent", "Palantica-Padel-Engine/2.0 (compatible; Padelful Integration)");
         this.httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+
+        if (!string.IsNullOrWhiteSpace(this.apiKey))
+        {
+            this.httpClient.DefaultRequestHeaders.Add("x-api-key", this.apiKey);
+            this.httpClient.DefaultRequestHeaders.Add("X-API-KEY", this.apiKey);
+            this.httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", this.apiKey);
+            this.logger.LogInformation("PadelfulService configurado con autenticación API token activa.");
+        }
+    }
+
+    private sealed record PalaMarcaJoin(string? Nombre);
+    private sealed record PalaDbRecord(
+        int Id,
+        string? Slug,
+        string Modelo,
+        string Forma,
+        int BalanceMm,
+        string? MaterialNucleo,
+        string? MaterialCaras,
+        float DurezaPromedio,
+        float PotenciaPromedio,
+        float ControlPromedio,
+        float SalidaBolaPromedio,
+        float ManiobrabilidadPromedio,
+        float PuntoDulcePromedio,
+        float PuntuacionGeneral,
+        decimal PrecioReferencia,
+        string? MonedaPrecio,
+        string? ImagenUrl,
+        string? JugadorPro,
+        int AnoLanzamiento,
+        string? PadelfulUrl,
+        PalaMarcaJoin? Marcas = null
+    );
+
+    private static PadelfulPalaPreview mapDbRecordToPreview(PalaDbRecord p)
+    {
+        var durezaNivel = p.DurezaPromedio > 7.5f ? "Dura" : p.DurezaPromedio < 5.5f ? "Blanda" : "Media";
+        var balanceNivel = p.BalanceMm >= 275 ? "Alto" : p.BalanceMm <= 255 ? "Bajo" : "Medio";
+        return new PadelfulPalaPreview(
+            Slug: p.Slug ?? p.Modelo.ToLowerInvariant().Replace(" ", "-"),
+            Marca: p.Marcas?.Nombre ?? "Marca",
+            Modelo: p.Modelo,
+            Forma: p.Forma,
+            BalanceMm: p.BalanceMm,
+            BalanceNivel: balanceNivel,
+            MaterialNucleo: p.MaterialNucleo ?? "Black EVA",
+            MaterialCaras: p.MaterialCaras ?? "Carbono 12K",
+            DurezaNivel: durezaNivel,
+            DurezaScore: p.DurezaPromedio,
+            PotenciaScore: p.PotenciaPromedio,
+            ControlScore: p.ControlPromedio,
+            SalidaBolaScore: p.SalidaBolaPromedio,
+            ManiobrabilidadScore: p.ManiobrabilidadPromedio,
+            PuntoDulceScore: p.PuntoDulcePromedio,
+            PuntuacionGeneral: p.PuntuacionGeneral,
+            Precio: p.PrecioReferencia,
+            Moneda: p.MonedaPrecio ?? "EUR",
+            ImagenUrl: p.ImagenUrl,
+            Descripcion: $"Pala técnica {p.Modelo}.",
+            JugadorPro: p.JugadorPro,
+            AnoLanzamiento: p.AnoLanzamiento,
+            FuenteOriginal: p.PadelfulUrl ?? "https://www.padelful.com"
+        );
     }
 
     /// <summary>
@@ -103,12 +177,10 @@ public sealed class PadelfulService
         var allDbSlugs = new HashSet<string>(fullCatalog.Select(p => p.Slug.Trim().ToLowerInvariant()), StringComparer.OrdinalIgnoreCase);
         var allDbTitles = new HashSet<string>(fullCatalog.Select(p => $"{p.Marca}_{p.Modelo}".Trim().ToLowerInvariant()), StringComparer.OrdinalIgnoreCase);
 
-        // Primero intentar Supabase si hay filtros específicos
+        // Primero intentar Supabase tabla oficial palas si hay filtros específicos
         try
         {
-            var queryParams = new List<string>();
-            if (!string.IsNullOrWhiteSpace(filter.Brand))
-                queryParams.Add($"marca=ilike.*{Uri.EscapeDataString(filter.Brand.Trim())}*");
+            var queryParams = new List<string> { "select=*,marcas(nombre)" };
             if (!string.IsNullOrWhiteSpace(filter.Shape))
                 queryParams.Add($"forma=ilike.*{Uri.EscapeDataString(filter.Shape.Trim())}*");
             if (filter.MinRating.HasValue && filter.MinRating.Value > 0)
@@ -116,20 +188,21 @@ public sealed class PadelfulService
             if (!string.IsNullOrWhiteSpace(filter.Query))
             {
                 var q = Uri.EscapeDataString(filter.Query.Trim());
-                queryParams.Add($"or=(slug.ilike.*{q}*,modelo.ilike.*{q}*,marca.ilike.*{q}*,jugador_pro.ilike.*{q}*)");
+                queryParams.Add($"or=(slug.ilike.*{q}*,modelo.ilike.*{q}*,jugador_pro.ilike.*{q}*)");
             }
             queryParams.Add("order=puntuacion_general.desc");
             queryParams.Add($"limit={limit + offset}");
 
-            var (supabaseItems, _) = await supabaseClient.GetListAsync<PadelfulPalaPreview>(
-                "catalogo_palas",
+            var (supabaseItems, _) = await supabaseClient.GetListAsync<PalaDbRecord>(
+                "palas",
                 string.Join("&", queryParams),
                 cancellationToken);
 
             if (supabaseItems != null && supabaseItems.Count > 0)
             {
-                dbResults.AddRange(supabaseItems);
-                foreach (var item in supabaseItems)
+                var mappedItems = supabaseItems.Select(mapDbRecordToPreview).ToList();
+                dbResults.AddRange(mappedItems);
+                foreach (var item in mappedItems)
                 {
                     allDbSlugs.Add(item.Slug.Trim().ToLowerInvariant());
                     allDbTitles.Add($"{item.Marca}_{item.Modelo}".Trim().ToLowerInvariant());
@@ -138,7 +211,7 @@ public sealed class PadelfulService
         }
         catch (Exception ex)
         {
-            logger.LogDebug("Consulta remota Supabase catalogo_palas: usando catálogo local ({Msg}).", ex.Message);
+            logger.LogDebug("Consulta remota Supabase palas: usando catálogo local ({Msg}).", ex.Message);
         }
 
         // Si la base de datos remota no devolvió items, usamos el catálogo factual indexado (1,722 palas)
@@ -199,7 +272,7 @@ public sealed class PadelfulService
                     if (!string.IsNullOrWhiteSpace(filter.Shape))
                         extQueryParams.Add($"shape={Uri.EscapeDataString(filter.Shape.Trim())}");
 
-                    var url = $"https://www.padelful.com/api/v1/rackets?{string.Join("&", extQueryParams)}";
+                    var url = $"{baseUrl}/rackets?{string.Join("&", extQueryParams)}";
                     logger.LogInformation("Consultando Padelful API para palas no existentes ({Calls}/{Max}): {Url}", _hourlyCalls, MaxExternalCallsPerHour, url);
 
                     using var response = await httpClient.GetAsync(url, cancellationToken);
@@ -402,21 +475,21 @@ public sealed class PadelfulService
                                             p.Modelo.Equals(slug, StringComparison.OrdinalIgnoreCase));
         if (match != null) return match;
 
-        // 2. Intentar Supabase catalogo_palas
+        // 2. Intentar Supabase tabla oficial palas
         try
         {
-            var (sbItems, _) = await supabaseClient.GetListAsync<PadelfulPalaPreview>(
-                "catalogo_palas",
-                $"slug=eq.{Uri.EscapeDataString(normSlug)}&limit=1",
+            var (sbItems, _) = await supabaseClient.GetListAsync<PalaDbRecord>(
+                "palas",
+                $"slug=eq.{Uri.EscapeDataString(normSlug)}&select=*,marcas(nombre)&limit=1",
                 cancellationToken);
-            if (sbItems != null && sbItems.Count > 0) return sbItems[0];
+            if (sbItems != null && sbItems.Count > 0) return mapDbRecordToPreview(sbItems[0]);
         }
         catch { }
 
         // 3. Si no existe en la base de datos, consultar API externa de Padelful
         try
         {
-            var url = $"https://www.padelful.com/api/v1/rackets/{Uri.EscapeDataString(normSlug)}";
+            var url = $"{baseUrl}/rackets/{Uri.EscapeDataString(normSlug)}";
             using var response = await httpClient.GetAsync(url, cancellationToken);
             if (response.IsSuccessStatusCode)
             {

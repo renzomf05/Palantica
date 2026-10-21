@@ -118,6 +118,12 @@ export const PaletasPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [loadPalas]);
 
+  // Scroll suave al inicio cada vez que se cambia de página en el catálogo
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
+
   // Filtrado exhaustivo por distintivos en memoria
   const filteredPalas = useMemo(() => {
     // 1. Deduplicación estricta por slug o modelo normalizado

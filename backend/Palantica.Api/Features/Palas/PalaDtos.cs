@@ -45,7 +45,8 @@ public sealed record PalaListResponse(
     int AnoLanzamiento,
     string? JugadorPro,
     int TotalResenas,
-    int TotalVotos
+    int TotalVotos,
+    string? Slug = null
 );
 
 /// <summary>
@@ -84,7 +85,8 @@ public sealed record PalaDetalleResponse(
     string? Descripcion,
     int TotalResenas,
     int TotalVotos,
-    IReadOnlyList<PalaSimilarResponse>? PalasSimilares = null
+    IReadOnlyList<PalaSimilarResponse>? PalasSimilares = null,
+    string? Slug = null
 );
 
 /// <summary>

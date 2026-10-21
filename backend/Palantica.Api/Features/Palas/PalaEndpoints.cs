@@ -24,6 +24,10 @@ public static class PalaEndpoints
             .WithName("ObtenerFichaPala")
             .WithSummary("Obtiene la Ficha Sagrada completa de una pala de pádel");
 
+        group.MapGet("/slug/{slug}", obtenerFichaPalaPorSlug)
+            .WithName("ObtenerFichaPalaPorSlug")
+            .WithSummary("Obtiene la Ficha Sagrada completa de una pala de pádel por su slug");
+
         group.MapGet("/{id:int}/similares", calcularPalasSimilares)
             .WithName("CalcularPalasSimilares")
             .WithSummary("Calcula las palas parecidas mediante el motor de similitud vectorial multicriterio");
@@ -77,5 +81,23 @@ public static class PalaEndpoints
         var similares = similarityEngine.CalculateSimilarPalas(pala, todasLasPalas, finalLimit);
 
         return Results.Ok(similares);
+    }
+
+    private static async Task<IResult> obtenerFichaPalaPorSlug(
+        string slug,
+        [FromServices] PalaRepository repository,
+        [FromServices] PalaSimilarityEngine similarityEngine,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(slug)) return Results.BadRequest(new { error = "El slug es obligatorio." });
+
+        var pala = await repository.GetBySlugAsync(slug, cancellationToken);
+        if (pala is null) return Results.NotFound(new { error = $"Pala con slug '{slug}' no encontrada en el catálogo." });
+
+        var todasLasPalas = await repository.GetAllForSimilarityAsync(cancellationToken);
+        var similares = similarityEngine.CalculateSimilarPalas(pala, todasLasPalas, limit: 4);
+
+        var palaCompleta = pala with { PalasSimilares = similares };
+        return Results.Ok(palaCompleta);
     }
 }

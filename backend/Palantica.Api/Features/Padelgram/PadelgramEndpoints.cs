@@ -68,12 +68,20 @@ public static class PadelgramEndpoints
 
     private static async Task<IResult> darLike(
         int id,
+        ClaimsPrincipal user,
         [FromServices] PadelgramRepository repository,
         CancellationToken cancellationToken)
     {
         if (id <= 0) return Results.BadRequest(new { error = "ID inválido." });
 
-        var likesCount = await repository.ToggleLikeAsync(id, cancellationToken);
+        int? userId = null;
+        var idClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (int.TryParse(idClaim, out var parsed))
+        {
+            userId = parsed;
+        }
+
+        var likesCount = await repository.ToggleLikeAsync(id, userId, cancellationToken);
         return Results.Ok(new { id, likesCount });
     }
 }

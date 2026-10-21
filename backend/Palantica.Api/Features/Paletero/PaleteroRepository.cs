@@ -80,6 +80,13 @@ public sealed class PaleteroRepository
 
         if (request.Categoria.Equals("Usando actualmente", StringComparison.OrdinalIgnoreCase))
         {
+            try
+            {
+                await client.UpdateAsync<dynamic>("paletero_items", $"usuario_id=eq.{userId}", new { es_activa = false }, cancellationToken);
+                await client.UpdateAsync<dynamic>("paletero_items", $"id=eq.{record.Id}", new { es_activa = true }, cancellationToken);
+            }
+            catch { }
+
             await client.UpdateAsync<dynamic>("usuarios", $"id=eq.{userId}", new { pala_activa_id = request.PalaId }, cancellationToken);
         }
 

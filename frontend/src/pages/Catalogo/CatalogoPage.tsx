@@ -119,6 +119,12 @@ export const CatalogoPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [loadPalas]);
 
+  // Scroll suave al inicio cada vez que se cambia de página en el catálogo
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
+
   const resetFilters = () => {
     setSearch('');
     setSelectedMarca('');

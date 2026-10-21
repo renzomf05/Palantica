@@ -4,6 +4,7 @@ import { authApi } from '../../api/auth';
 import { useAuth } from '../../hooks/useAuth';
 import type { PerfilUsuario } from '../../types';
 import { Skeleton } from '../../components/ui/Skeleton';
+import { PerfilPaleteroSection } from '../../components/perfil/PerfilPaleteroSection';
 import { User, LogOut, Award, Star, Sliders, Briefcase, Camera, LogIn } from 'lucide-react';
 
 export const PerfilPage: React.FC = () => {
@@ -140,6 +141,13 @@ export const PerfilPage: React.FC = () => {
           </div>
         )}
       </section>
+
+      {/* Sección Mi Paletero: 4 Compartimentos con pestañas y borrado de palas */}
+      <PerfilPaleteroSection
+        onPaleteroUpdate={(totalCount) => {
+          setPerfil((prev) => (prev ? { ...prev, totalPaletero: totalCount } : prev));
+        }}
+      />
 
       {/* Grid de Estadísticas Comunitarias */}
       <section>

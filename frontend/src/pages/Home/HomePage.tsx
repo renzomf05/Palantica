@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { palasApi } from '../../api/palas';
+import { padelfulApi } from '../../api/padelful';
 import { padelgramApi } from '../../api/padelgram';
 import { Carousel } from '../../components/ui/Carousel';
+import { NuevosLanzamientosCircuit } from '../../components/home/NuevosLanzamientosCircuit';
 import { useFitText } from '../../hooks/useFitText';
 import type { Pala, CarouselCardItem, PadelgramPost } from '../../types';
 import {
@@ -16,11 +18,11 @@ import {
 export const HomePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filtroComunidad, setFiltroComunidad] = useState<string>('SEMANA');
+  const [totalPaletas, setTotalPaletas] = useState<number>(1722);
 
-  // Datos para los 4 carruseles
+  // Datos para los carruseles
   const [paletasNuevas, setPaletasNuevas] = useState<CarouselCardItem[]>([]);
   const [deLaComunidad, setDeLaComunidad] = useState<CarouselCardItem[]>([]);
-  const [nuevosLanzamientos, setNuevosLanzamientos] = useState<CarouselCardItem[]>([]);
   const [catalogoReciente, setCatalogoReciente] = useState<CarouselCardItem[]>([]);
 
   // Hook para titular adaptativo gigante Swiss
@@ -38,6 +40,18 @@ export const HomePage: React.FC = () => {
         // Cargar palas desde la API
         const palasRes = await palasApi.getPalas({ pageSize: 12, orderBy: 'novedad' });
         const palas = palasRes.items || [];
+
+        // Obtener conteo real del catálogo de paletas
+        try {
+          const allRackets = await padelfulApi.getRackets({ limit: 2500 });
+          if (allRackets && allRackets.length > 0) {
+            if (isMounted) setTotalPaletas(allRackets.length);
+          } else if (palasRes.totalCount && palasRes.totalCount > 0) {
+            if (isMounted) setTotalPaletas(palasRes.totalCount);
+          }
+        } catch {
+          // Si falla, mantiene el fallback de 1722
+        }
 
         // 1. Carrusel: Paletas nuevas (Noticias y presentaciones)
         const mockPaletasNuevas: CarouselCardItem[] = [
@@ -192,55 +206,7 @@ export const HomePage: React.FC = () => {
           ];
         }
 
-        // 3. Carrusel: Nuevos lanzamientos oficiales de marcas
-        const mockNuevosLanzamientos: CarouselCardItem[] = [
-          {
-            id: 'l1',
-            titulo: 'Colección Nox Luxury 2026: Carbono Alum y núcleos Dual Density',
-            subtitulo: 'Nox Padel • Colección Completa',
-            etiqueta: 'LANZAMIENTO',
-            imagenUrl:
-              'https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=800&q=80',
-            linkTo: '/paletas?marca=Nox',
-            precio: 320,
-            fecha: 'Lanzamiento Oficial',
-          },
-          {
-            id: 'l2',
-            titulo: 'Siux Trilogy IV Control Patty Llaguno: Máxima salida en formato redondo',
-            subtitulo: 'Siux • Edición Profesional',
-            etiqueta: 'LANZAMIENTO',
-            imagenUrl:
-              'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=800&q=80',
-            linkTo: '/paletas?marca=Siux',
-            precio: 290,
-            fecha: 'Disponible Ya',
-          },
-          {
-            id: 'l3',
-            titulo: 'Wilson Bela Pro V2.5: La leyenda de Fernando Belasteguín en su máxima versión',
-            subtitulo: 'Wilson • Serie Exclusiva',
-            etiqueta: 'LANZAMIENTO',
-            imagenUrl:
-              'https://images.unsplash.com/photo-1599586120429-48281b6f0ece?auto=format&fit=crop&w=800&q=80',
-            linkTo: '/paletas?marca=Wilson',
-            precio: 340,
-            fecha: 'Preventa',
-          },
-          {
-            id: 'l4',
-            titulo: 'Bullpadel Flow Woman 2026 Alejandra Salazar: Ligereza y control total',
-            subtitulo: 'Bullpadel • Pro Line',
-            etiqueta: 'LANZAMIENTO',
-            imagenUrl:
-              'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=800&q=80',
-            linkTo: '/paletas?marca=Bullpadel',
-            precio: 270,
-            fecha: 'Nuevo',
-          },
-        ];
-
-        // 4. Carrusel: Nuevas paletas agregadas al catálogo (con navegación directa a /paletas/:id)
+        // 3. Carrusel: Nuevas paletas agregadas al catálogo (con navegación directa a /paletas/:id)
         const mockCatalogo: CarouselCardItem[] = palas.map((pala: Pala) => ({
           id: `cat-${pala.id}`,
           titulo: `${pala.marcaNombre} ${pala.modelo}`,
@@ -257,7 +223,6 @@ export const HomePage: React.FC = () => {
         if (isMounted) {
           setPaletasNuevas(mockPaletasNuevas);
           setDeLaComunidad(mockComunidad);
-          setNuevosLanzamientos(mockNuevosLanzamientos);
           setCatalogoReciente(
             mockCatalogo.length > 0
               ? mockCatalogo
@@ -388,13 +353,8 @@ export const HomePage: React.FC = () => {
               loading={loading}
             />
 
-            {/* Carrusel 3: Nuevos lanzamientos */}
-            <Carousel
-              titulo="Nuevos lanzamientos"
-              items={nuevosLanzamientos}
-              verTodoLink="/paletas"
-              loading={loading}
-            />
+            {/* Carrusel 3: Nuevos Lanzamientos & Circuito Profesional Panorámico */}
+            <NuevosLanzamientosCircuit />
 
             {/* Carrusel 4: Nuevas paletas en el catálogo */}
             <Carousel
@@ -429,7 +389,7 @@ export const HomePage: React.FC = () => {
                   Total de Paletas
                 </span>
                 <span className="text-2xl font-black text-white tracking-tight mt-0.5">
-                  148
+                  {totalPaletas.toLocaleString()}
                 </span>
                 <span className="text-[10px] text-emerald-400 mt-1 font-medium">
                   +12 este mes

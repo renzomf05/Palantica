@@ -32,6 +32,8 @@ services:
       - Jwt__Key=***REMOVED***
       - Jwt__Issuer=Palantica.Api
       - Jwt__Audience=Palantica.Client
+      - Padelful__ApiKey=***REMOVED***
+      - Padelful__BaseUrl=https://www.padelful.com/api/v1
     ports:
       - "5007:5007"
 

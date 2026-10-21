@@ -8,6 +8,9 @@ export const palasApi = {
   getPalaDetalle: (id: number) =>
     apiClient.get<PalaDetalle>(`/api/v1/palas/${id}`),
 
+  getPalaBySlug: (slug: string) =>
+    apiClient.get<PalaDetalle>(`/api/v1/palas/slug/${encodeURIComponent(slug)}`),
+
   getPalasSimilares: (id: number, limit = 4) =>
     apiClient.get<PalaSimilar[]>(`/api/v1/palas/${id}/similares`, { limit }),
 

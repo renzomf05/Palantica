@@ -77,6 +77,12 @@ export const CatalogoPadelfulPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [loadRackets]);
 
+  // Scroll suave al inicio cada vez que se cambia de página en el catálogo
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
+
   // Sincronizar catálogo a Supabase/PostgreSQL
   const handleSyncDatabase = async () => {
     setSyncing(true);
