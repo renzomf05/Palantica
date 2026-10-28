@@ -73,6 +73,8 @@
   /* Superficie gris muy oscuro */
   --bg-card: #161D27;
   /* Card superficie estructurada */
+  --bg-card-subtle: #1E2734;
+  /* Píldoras o métricas */
   --bg-card-hover: #1E2734;
   /* Hover elevación táctil */
   --bg-card-elevated: #222C3B;
@@ -98,32 +100,47 @@
   --text-muted: #64748B;
   /* Atenuado */
   --text-inverse: #080B0F;
+
+  --pedestal-gradient: radial-gradient(ellipse at 50% 30%, var(--bg-card-hover) 0%, var(--bg-input) 100%);
+  --radar-volt-text: #A3E635;
 }
 
 /* ==========================================================
-   MODO CLARO: LIMPIO Y ELEGANTE
+   MODO CLARO: EDITORIAL MARFIL Y PRESTIGIO DEPORTIVO
    ========================================================== */
 [data-theme="light"] {
-  --bg-deep: #F8FAFC;
+  --bg-deep: #F8F9FA;
+  /* Marfil pergamino deportivo cálido antideslumbrante */
   --bg-surface: #FFFFFF;
+  /* Superficie blanco puro */
   --bg-card: #FFFFFF;
-  --bg-card-hover: #F1F5F9;
+  /* Card blanca nítida */
+  --bg-card-subtle: #F1F5F9;
+  /* Píldoras o bloques de métricas */
+  --bg-card-hover: #F8FAFC;
   --bg-card-elevated: #FFFFFF;
   --bg-input: #F1F5F9;
-  --bg-glass: rgba(248, 250, 252, 0.92);
-  --bg-glass-card: rgba(255, 255, 255, 0.92);
+  /* Fondo de buscador e inputs */
+  --bg-glass: rgba(255, 255, 255, 0.90);
+  --bg-glass-card: rgba(255, 255, 255, 0.95);
 
-  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-subtle: rgba(0, 0, 0, 0.07);
   --border-card: #E2E8F0;
-  --border-card-hover: #10B981;
+  --border-card-hover: #059669;
   --border-steel-highlight: rgba(20, 184, 166, 0.35);
 
-  --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.05);
-  --shadow-card-elevated: 0 12px 28px rgba(0, 0, 0, 0.08);
-  --shadow-btn-primary: 0 4px 14px rgba(16, 185, 129, 0.30);
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+  --shadow-card-elevated: 0 12px 32px -4px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+  --shadow-btn-primary: 0 4px 14px rgba(5, 150, 105, 0.25);
 
   --text-primary: #0F172A;
+  /* Slate 900 alto contraste */
   --text-secondary: #475569;
-  --text-muted: #94A3B8;
+  /* Slate 600 equilibrado */
+  --text-muted: #64748B;
+  /* Slate 500 */
   --text-inverse: #FFFFFF;
+
+  --pedestal-gradient: radial-gradient(ellipse at 50% 30%, #F1F5F9 0%, #E2E8F0 100%);
+  --radar-volt-text: #4D7C0F;
 }

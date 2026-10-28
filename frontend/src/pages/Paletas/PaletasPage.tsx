@@ -12,7 +12,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
-  ArrowUpDown
+  ArrowUpDown,
+  Layers
 } from 'lucide-react';
 
 export const PaletasPage: React.FC = () => {
@@ -42,31 +43,57 @@ export const PaletasPage: React.FC = () => {
   const [marcas, setMarcas] = useState<Marca[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Filtros
+  // Filtros por distintivos
   const [selectedForma, setSelectedForma] = useState('');
   const [selectedBalance, setSelectedBalance] = useState('');
   const [selectedDureza, setSelectedDureza] = useState('');
-  const [selectedNivel, setSelectedNivel] = useState('');
   const [selectedNucleo, setSelectedNucleo] = useState('');
   const [selectedMaterialCara, setSelectedMaterialCara] = useState('');
-  const [selectedAno, setSelectedAno] = useState<number | ''>('');
   const [selectedGenero, setSelectedGenero] = useState('');
-  const [precioMax, setPrecioMax] = useState<number>(450);
-  const [pesoRango, setPesoRango] = useState<string>('');
   const [orderBy, setOrderBy] = useState<'novedad' | 'puntuacion' | 'populares' | 'precio_asc' | 'precio_desc'>('puntuacion');
 
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(12);
 
-  // Cargar marcas
+  // Cargar marcas con conteo REAL desde el catálogo completo de 1.722 palas
   useEffect(() => {
     async function loadMarcas() {
       try {
-        const data = await palasApi.getMarcas();
-        setMarcas(data);
+        const allRackets = await padelfulApi.getRackets({ limit: 2500 });
+        const counts: Record<string, number> = {};
+        for (const r of allRackets) {
+          if (r.marca) {
+            const b = r.marca.trim();
+            counts[b] = (counts[b] || 0) + 1;
+          }
+        }
+
+        const brandList: Marca[] = Object.entries(counts)
+          .map(([nombre, totalPalas], idx) => ({
+            id: idx + 1,
+            nombre,
+            totalPalas,
+            paisOrigen: '',
+            sitioWeb: '',
+            logoUrl: '',
+          }))
+          .sort((a, b) => (b.totalPalas || 0) - (a.totalPalas || 0));
+
+        if (brandList.length > 0) {
+          setMarcas(brandList);
+        } else {
+          const fallback = await palasApi.getMarcas();
+          setMarcas(fallback);
+        }
       } catch (err) {
         console.error('Error cargando marcas:', err);
+        try {
+          const fallback = await palasApi.getMarcas();
+          setMarcas(fallback);
+        } catch {
+          // No-op
+        }
       }
     }
     loadMarcas();
@@ -105,7 +132,17 @@ export const PaletasPage: React.FC = () => {
       }
     } catch (err) {
       console.error('Error cargando catálogo de palas:', err);
-      setPalas(mockPalasFallback);
+      try {
+        const local = await padelfulApi.getRackets({ limit: 2500 });
+        if (local && local.length > 0) {
+          setPadelfulRackets(local);
+          setPalas(local.map((r, i) => padelfulToPala(r, i + 1)));
+        } else {
+          setPalas(mockPalasFallback);
+        }
+      } catch {
+        setPalas(mockPalasFallback);
+      }
     } finally {
       setLoading(false);
     }
@@ -149,40 +186,51 @@ export const PaletasPage: React.FC = () => {
         return false;
       }
 
-      // Forma
-      if (selectedForma && pala.forma.toLowerCase() !== selectedForma.toLowerCase()) {
-        return false;
+      // Forma (tolerante a traducciones español/inglés: Lagrima/Lágrima/Teardrop, Diamante/Diamond, Redonda/Round)
+      if (selectedForma) {
+        const formaPala = (pala.forma || '').toLowerCase();
+        const sel = selectedForma.toLowerCase();
+        if (sel === 'lagrima' || sel === 'lágrima') {
+          if (!formaPala.includes('lagrima') && !formaPala.includes('lágrima') && !formaPala.includes('teardrop')) return false;
+        } else if (sel === 'diamante') {
+          if (!formaPala.includes('diamante') && !formaPala.includes('diamond')) return false;
+        } else if (sel === 'redonda') {
+          if (!formaPala.includes('redonda') && !formaPala.includes('round')) return false;
+        } else if (!formaPala.includes(sel)) {
+          return false;
+        }
       }
 
-      // Balance
+      // Balance (tolerante con rangos amplios y etiquetas de texto)
       if (selectedBalance) {
         const balanceMm = pala.balanceMm || 265;
-        if (selectedBalance === 'Bajo' && balanceMm > 260) return false;
-        if (selectedBalance === 'Medio' && (balanceMm <= 260 || balanceMm > 270)) return false;
-        if (selectedBalance === 'Alto' && balanceMm <= 270) return false;
+        const balanceNivel = (pala.balanceNivel || '').toLowerCase();
+        if (selectedBalance === 'Bajo') {
+          const match = balanceNivel.includes('bajo') || balanceNivel.includes('low') || balanceMm <= 263;
+          if (!match) return false;
+        } else if (selectedBalance === 'Medio') {
+          const match = balanceNivel.includes('medio') || balanceNivel.includes('medium') || (balanceMm >= 260 && balanceMm <= 273);
+          if (!match) return false;
+        } else if (selectedBalance === 'Alto') {
+          const match = balanceNivel.includes('alto') || balanceNivel.includes('high') || balanceMm >= 269;
+          if (!match) return false;
+        }
       }
 
-      // Dureza
+      // Dureza de tacto (tolerante con puntuaciones y descripciones)
       if (selectedDureza) {
-        const dureza = pala.durezaPromedio || 6;
-        if (selectedDureza === 'Blanda' && dureza > 5.5) return false;
-        if (selectedDureza === 'Media' && (dureza <= 5.5 || dureza > 7.5)) return false;
-        if (selectedDureza === 'Dura' && dureza <= 7.5) return false;
-      }
-
-      // Peso
-      if (pesoRango) {
-        const pMin = pala.pesoMin || 360;
-        const pMax = pala.pesoMax || 375;
-        if (pesoRango === 'Ligero' && pMin >= 360) return false;
-        if (pesoRango === 'Estándar' && (pMin < 360 || pMax > 375)) return false;
-        if (pesoRango === 'Pesado' && pMax <= 375) return false;
-      }
-
-      // Nivel de juego
-      if (selectedNivel) {
-        const nivel = pala.nivelJuego?.toLowerCase() || 'avanzado';
-        if (!nivel.includes(selectedNivel.toLowerCase())) return false;
+        const dureza = pala.durezaPromedio || 6.5;
+        const durezaNivel = (pala.durezaNivel || '').toLowerCase();
+        if (selectedDureza === 'Blanda') {
+          const match = dureza <= 6.2 || durezaNivel.includes('bland') || durezaNivel.includes('soft');
+          if (!match) return false;
+        } else if (selectedDureza === 'Media') {
+          const match = (dureza >= 5.0 && dureza <= 8.0) || durezaNivel.includes('med');
+          if (!match) return false;
+        } else if (selectedDureza === 'Dura') {
+          const match = dureza >= 6.8 || durezaNivel.includes('dur') || durezaNivel.includes('hard');
+          if (!match) return false;
+        }
       }
 
       // Núcleo / Goma
@@ -197,18 +245,8 @@ export const PaletasPage: React.FC = () => {
         if (!caras.includes(selectedMaterialCara.toLowerCase())) return false;
       }
 
-      // Año de lanzamiento
-      if (selectedAno && pala.anoLanzamiento !== selectedAno) {
-        return false;
-      }
-
       // Género
       if (selectedGenero && pala.genero && pala.genero.toLowerCase() !== selectedGenero.toLowerCase()) {
-        return false;
-      }
-
-      // Precio
-      if (pala.precioReferencia && pala.precioReferencia > precioMax) {
         return false;
       }
 
@@ -221,13 +259,9 @@ export const PaletasPage: React.FC = () => {
     selectedForma,
     selectedBalance,
     selectedDureza,
-    pesoRango,
-    selectedNivel,
     selectedNucleo,
     selectedMaterialCara,
-    selectedAno,
     selectedGenero,
-    precioMax,
   ]);
 
   // Ordenamiento de resultados
@@ -263,13 +297,9 @@ export const PaletasPage: React.FC = () => {
     setSelectedForma('');
     setSelectedBalance('');
     setSelectedDureza('');
-    setSelectedNivel('');
     setSelectedNucleo('');
     setSelectedMaterialCara('');
-    setSelectedAno('');
     setSelectedGenero('');
-    setPrecioMax(450);
-    setPesoRango('');
     setOrderBy('puntuacion');
     setPage(1);
     setSearchParams({});
@@ -281,13 +311,9 @@ export const PaletasPage: React.FC = () => {
     selectedForma,
     selectedBalance,
     selectedDureza,
-    pesoRango,
-    selectedNivel,
     selectedNucleo,
     selectedMaterialCara,
-    selectedAno,
     selectedGenero,
-    precioMax < 450 ? precioMax : null,
   ].filter(Boolean).length;
   // Mapa de acceso rápido O(1) por slug para evitar duplicados y colisiones
   const previewMap = useMemo(() => {
@@ -347,41 +373,39 @@ export const PaletasPage: React.FC = () => {
       {/* Encabezado Principal Swiss de la Sección PALETAS */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-5">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 mb-2">
             <Sparkles size={13} />
             <span>Enciclopedia Técnica</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white m-0">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[var(--text-primary)] m-0">
             Catálogo de Paletas
           </h1>
-          <p className="text-zinc-400 text-sm mt-1 max-w-xl">
+          <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-1 max-w-xl">
             Explora las características distintivas de cada modelo: dureza de tacto, balance, peso, trenzado de carbono y núcleo térmico.
           </p>
         </div>
 
         {/* Contador, Toggle de Fuente y Orden */}
         <div className="flex flex-wrap items-center gap-3">
-
-
-          <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider hidden sm:inline">
+          <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider hidden sm:inline">
             {sortedPalas.length} {sortedPalas.length === 1 ? 'Paleta' : 'Paletas'}
           </span>
 
-          <div className="flex items-center gap-1.5 bg-zinc-900 border border-white/10 rounded-2xl px-3 py-2 text-xs font-bold text-white">
-            <ArrowUpDown size={14} className="text-emerald-400" />
+          <div className="flex items-center gap-1.5 bg-[var(--bg-card-subtle)] border border-zinc-200 dark:border-white/10 rounded-2xl px-3 py-2 text-xs font-bold text-[var(--text-primary)] transition-colors shadow-sm">
+            <ArrowUpDown size={14} className="text-emerald-600 dark:text-emerald-400" />
             <select
               value={orderBy}
               onChange={(e) => {
                 setOrderBy(e.target.value as 'novedad' | 'puntuacion' | 'populares' | 'precio_asc' | 'precio_desc');
                 setPage(1);
               }}
-              className="bg-transparent outline-none text-white cursor-pointer"
+              className="bg-transparent outline-none text-[var(--text-primary)] cursor-pointer"
             >
-              <option value="puntuacion" className="bg-zinc-900">Mejor calificadas</option>
-              <option value="novedad" className="bg-zinc-900">Más nuevas</option>
-              <option value="populares" className="bg-zinc-900">Más populares</option>
-              <option value="precio_asc" className="bg-zinc-900">Precio: Menor a Mayor</option>
-              <option value="precio_desc" className="bg-zinc-900">Precio: Mayor a Menor</option>
+              <option value="puntuacion" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Mejor calificadas</option>
+              <option value="novedad" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Más nuevas</option>
+              <option value="populares" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Más populares</option>
+              <option value="precio_asc" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Precio: Menor a Mayor</option>
+              <option value="precio_desc" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Precio: Mayor a Menor</option>
             </select>
           </div>
 
@@ -399,97 +423,61 @@ export const PaletasPage: React.FC = () => {
 
       {/* Barra de Filtros Activos Removibles */}
       {activeFiltersCount > 0 && (
-        <div className="flex flex-wrap items-center gap-2 p-3 rounded-2xl bg-zinc-900/60 border border-white/10">
-          <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider mr-1">
+        <div className="flex flex-wrap items-center gap-2 p-3 rounded-2xl bg-[var(--bg-surface)] border border-zinc-200 dark:border-white/10 shadow-sm transition-colors">
+          <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mr-1">
             Filtros activos:
           </span>
 
           {selectedMarca && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-800 text-white border border-white/15">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[var(--bg-card-subtle)] text-[var(--text-primary)] border border-zinc-200 dark:border-white/15">
               Marca: {selectedMarca}
               <button type="button" onClick={() => setSelectedMarca('')}>
-                <X size={12} className="hover:text-emerald-400" />
+                <X size={12} className="hover:text-emerald-500" />
               </button>
             </span>
           )}
 
           {selectedForma && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-800 text-white border border-white/15">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[var(--bg-card-subtle)] text-[var(--text-primary)] border border-zinc-200 dark:border-white/15">
               Forma: {selectedForma}
               <button type="button" onClick={() => setSelectedForma('')}>
-                <X size={12} className="hover:text-emerald-400" />
+                <X size={12} className="hover:text-emerald-500" />
               </button>
             </span>
           )}
 
           {selectedBalance && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-800 text-white border border-white/15">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[var(--bg-card-subtle)] text-[var(--text-primary)] border border-zinc-200 dark:border-white/15">
               Balance: {selectedBalance}
               <button type="button" onClick={() => setSelectedBalance('')}>
-                <X size={12} className="hover:text-emerald-400" />
+                <X size={12} className="hover:text-emerald-500" />
               </button>
             </span>
           )}
 
           {selectedDureza && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-800 text-white border border-white/15">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[var(--bg-card-subtle)] text-[var(--text-primary)] border border-zinc-200 dark:border-white/15">
               Dureza: {selectedDureza}
               <button type="button" onClick={() => setSelectedDureza('')}>
-                <X size={12} className="hover:text-emerald-400" />
-              </button>
-            </span>
-          )}
-
-          {pesoRango && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-800 text-white border border-white/15">
-              Peso: {pesoRango}
-              <button type="button" onClick={() => setPesoRango('')}>
-                <X size={12} className="hover:text-emerald-400" />
-              </button>
-            </span>
-          )}
-
-          {selectedNivel && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-800 text-white border border-white/15">
-              Nivel: {selectedNivel}
-              <button type="button" onClick={() => setSelectedNivel('')}>
-                <X size={12} className="hover:text-emerald-400" />
+                <X size={12} className="hover:text-emerald-500" />
               </button>
             </span>
           )}
 
           {selectedMaterialCara && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-800 text-white border border-white/15">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[var(--bg-card-subtle)] text-[var(--text-primary)] border border-zinc-200 dark:border-white/15">
               Caras: {selectedMaterialCara}
               <button type="button" onClick={() => setSelectedMaterialCara('')}>
-                <X size={12} className="hover:text-emerald-400" />
+                <X size={12} className="hover:text-emerald-500" />
               </button>
             </span>
           )}
 
           {selectedNucleo && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-800 text-white border border-white/15">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[var(--bg-card-subtle)] text-[var(--text-primary)] border border-zinc-200 dark:border-white/15">
               Núcleo: {selectedNucleo}
               <button type="button" onClick={() => setSelectedNucleo('')}>
-                <X size={12} className="hover:text-emerald-400" />
-              </button>
-            </span>
-          )}
-
-          {selectedAno && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-800 text-white border border-white/15">
-              Año: {selectedAno}
-              <button type="button" onClick={() => setSelectedAno('')}>
-                <X size={12} className="hover:text-emerald-400" />
-              </button>
-            </span>
-          )}
-
-          {precioMax < 450 && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-zinc-800 text-white border border-white/15">
-              Hasta ${precioMax}
-              <button type="button" onClick={() => setPrecioMax(450)}>
-                <X size={12} className="hover:text-emerald-400" />
+                <X size={12} className="hover:text-emerald-500" />
               </button>
             </span>
           )}
@@ -497,7 +485,7 @@ export const PaletasPage: React.FC = () => {
           <button
             type="button"
             onClick={handleClearFilters}
-            className="text-xs font-bold text-rose-400 hover:text-rose-300 ml-auto flex items-center gap-1"
+            className="text-xs font-bold text-rose-500 hover:text-rose-600 ml-auto flex items-center gap-1"
           >
             <RotateCcw size={12} />
             <span>Limpiar todos</span>
@@ -509,14 +497,14 @@ export const PaletasPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* SIDEBAR DE FILTROS POR DISTINTIVOS (3 columnas en desktop) */}
         <aside
-          className={`lg:col-span-3 lg:block flex-col gap-6 p-5 rounded-3xl bg-[var(--bg-surface)] border border-white/10 shadow-xl ${
+          className={`lg:col-span-3 lg:block flex-col gap-6 p-5 rounded-3xl bg-[var(--bg-surface)] border border-zinc-200 dark:border-white/10 shadow-lg shadow-zinc-900/5 dark:shadow-xl transition-colors ${
             showMobileFilters ? 'block' : 'hidden'
           }`}
         >
-          <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
+          <div className="flex items-center justify-between border-b border-zinc-200 dark:border-white/10 pb-3 mb-4">
             <div className="flex items-center gap-2">
-              <Filter size={16} className="text-emerald-400" />
-              <h2 className="text-sm font-black tracking-tight text-white uppercase m-0">
+              <Filter size={16} className="text-emerald-600 dark:text-emerald-400" />
+              <h2 className="text-sm font-black tracking-tight text-[var(--text-primary)] uppercase m-0">
                 Filtros por Distintivos
               </h2>
             </div>
@@ -524,7 +512,7 @@ export const PaletasPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleClearFilters}
-                className="text-xs font-bold text-zinc-400 hover:text-white"
+                className="text-xs font-bold text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
               >
                 Reset
               </button>
@@ -534,24 +522,24 @@ export const PaletasPage: React.FC = () => {
           <div className="flex flex-col gap-5 text-xs">
             {/* 1. Marca */}
             <div>
-              <label className="font-extrabold text-zinc-300 uppercase tracking-wider block mb-2">
+              <label className="font-extrabold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider block mb-2">
                 Marca
               </label>
               <select
                 value={selectedMarca}
                 onChange={(e) => setSelectedMarca(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl bg-zinc-900 border border-white/10 text-white outline-none focus:border-emerald-500"
+                className="w-full h-10 px-3 rounded-xl bg-[var(--bg-input)] border border-zinc-300 dark:border-white/10 text-[var(--text-primary)] outline-none focus:border-emerald-500 transition-colors"
               >
-                <option value="">Todas las marcas</option>
+                <option value="" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Todas las marcas</option>
                 {marcas.length > 0
                   ? marcas.map((m) => (
-                      <option key={m.id} value={m.nombre}>
+                      <option key={m.id} value={m.nombre} className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
                         {m.nombre} ({m.totalPalas || 0})
                       </option>
                     ))
                   : ['Bullpadel', 'Nox', 'Siux', 'Babolat', 'Head', 'Adidas', 'Wilson', 'Varlion'].map(
                       (m) => (
-                        <option key={m} value={m}>
+                        <option key={m} value={m} className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
                           {m}
                         </option>
                       )
@@ -561,7 +549,7 @@ export const PaletasPage: React.FC = () => {
 
             {/* 2. Forma de la cabeza */}
             <div>
-              <label className="font-extrabold text-zinc-300 uppercase tracking-wider block mb-2">
+              <label className="font-extrabold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider block mb-2">
                 Forma de la Pala
               </label>
               <div className="grid grid-cols-3 gap-1.5">
@@ -575,7 +563,7 @@ export const PaletasPage: React.FC = () => {
                       className={`py-2 px-1 rounded-xl text-center font-bold text-xs transition-all ${
                         isSel
                           ? 'bg-emerald-500 text-zinc-950 font-black shadow-sm'
-                          : 'bg-zinc-900 text-zinc-400 border border-white/5 hover:text-white'
+                          : 'bg-[var(--bg-card-subtle)] text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-white/5 hover:text-zinc-950 dark:hover:text-white hover:border-emerald-500/30'
                       }`}
                     >
                       {forma === 'Lagrima' ? 'Lágrima' : forma}
@@ -587,7 +575,7 @@ export const PaletasPage: React.FC = () => {
 
             {/* 3. Balance */}
             <div>
-              <label className="font-extrabold text-zinc-300 uppercase tracking-wider block mb-2">
+              <label className="font-extrabold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider block mb-2">
                 Balance (Punto de gravedad)
               </label>
               <div className="grid grid-cols-3 gap-1.5">
@@ -601,7 +589,7 @@ export const PaletasPage: React.FC = () => {
                       className={`py-2 px-1 rounded-xl text-center font-bold text-xs transition-all ${
                         isSel
                           ? 'bg-emerald-500 text-zinc-950 font-black shadow-sm'
-                          : 'bg-zinc-900 text-zinc-400 border border-white/5 hover:text-white'
+                          : 'bg-[var(--bg-card-subtle)] text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-white/5 hover:text-zinc-950 dark:hover:text-white hover:border-emerald-500/30'
                       }`}
                     >
                       {b}
@@ -613,7 +601,7 @@ export const PaletasPage: React.FC = () => {
 
             {/* 4. Dureza del tacto */}
             <div>
-              <label className="font-extrabold text-zinc-300 uppercase tracking-wider block mb-2">
+              <label className="font-extrabold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider block mb-2">
                 Dureza de Tacto
               </label>
               <div className="grid grid-cols-3 gap-1.5">
@@ -627,7 +615,7 @@ export const PaletasPage: React.FC = () => {
                       className={`py-2 px-1 rounded-xl text-center font-bold text-xs transition-all ${
                         isSel
                           ? 'bg-emerald-500 text-zinc-950 font-black shadow-sm'
-                          : 'bg-zinc-900 text-zinc-400 border border-white/5 hover:text-white'
+                          : 'bg-[var(--bg-card-subtle)] text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-white/5 hover:text-zinc-950 dark:hover:text-white hover:border-emerald-500/30'
                       }`}
                     >
                       {d}
@@ -637,135 +625,41 @@ export const PaletasPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 5. Nivel de Juego */}
+            {/* 5. Material de las caras */}
             <div>
-              <label className="font-extrabold text-zinc-300 uppercase tracking-wider block mb-2">
-                Nivel Recomendado
-              </label>
-              <select
-                value={selectedNivel}
-                onChange={(e) => setSelectedNivel(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl bg-zinc-900 border border-white/10 text-white outline-none focus:border-emerald-500"
-              >
-                <option value="">Cualquier nivel</option>
-                <option value="Principiante">Iniciación / Principiante</option>
-                <option value="Intermedio">Intermedio</option>
-                <option value="Avanzado">Avanzado</option>
-                <option value="Profesional">Competición / Profesional</option>
-              </select>
-            </div>
-
-            {/* 6. Material de las caras */}
-            <div>
-              <label className="font-extrabold text-zinc-300 uppercase tracking-wider block mb-2">
+              <label className="font-extrabold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider block mb-2">
                 Material de las Caras
               </label>
               <select
                 value={selectedMaterialCara}
                 onChange={(e) => setSelectedMaterialCara(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl bg-zinc-900 border border-white/10 text-white outline-none focus:border-emerald-500"
+                className="w-full h-10 px-3 rounded-xl bg-[var(--bg-input)] border border-zinc-300 dark:border-white/10 text-[var(--text-primary)] outline-none focus:border-emerald-500 transition-colors"
               >
-                <option value="">Todos los materiales</option>
-                <option value="3K">Carbono 3K</option>
-                <option value="12K">Carbono 12K</option>
-                <option value="18K">Carbono 18K</option>
-                <option value="24K">Carbono 24K</option>
-                <option value="Vidrio">Fibra de Vidrio (Fiberglass)</option>
+                <option value="" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Todos los materiales</option>
+                <option value="3K" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Carbono 3K</option>
+                <option value="12K" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Carbono 12K</option>
+                <option value="18K" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Carbono 18K</option>
+                <option value="24K" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Carbono 24K</option>
+                <option value="Vidrio" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Fibra de Vidrio (Fiberglass)</option>
               </select>
             </div>
 
-            {/* 7. Núcleo / Goma */}
+            {/* 6. Núcleo / Goma */}
             <div>
-              <label className="font-extrabold text-zinc-300 uppercase tracking-wider block mb-2">
+              <label className="font-extrabold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider block mb-2">
                 Núcleo / Espuma
               </label>
               <select
                 value={selectedNucleo}
                 onChange={(e) => setSelectedNucleo(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl bg-zinc-900 border border-white/10 text-white outline-none focus:border-emerald-500"
+                className="w-full h-10 px-3 rounded-xl bg-[var(--bg-input)] border border-zinc-300 dark:border-white/10 text-[var(--text-primary)] outline-none focus:border-emerald-500 transition-colors"
               >
-                <option value="">Todas las gomas</option>
-                <option value="EVA Soft">EVA Soft (Gran salida)</option>
-                <option value="Black EVA">Black EVA (Firmeza y potencia)</option>
-                <option value="MultiEVA">MultiEVA (Doble densidad)</option>
-                <option value="Foam">Foam / Polietileno (Confort brazo)</option>
+                <option value="" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Todas las gomas</option>
+                <option value="EVA Soft" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">EVA Soft (Gran salida)</option>
+                <option value="Black EVA" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Black EVA (Firmeza y potencia)</option>
+                <option value="MultiEVA" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">MultiEVA (Doble densidad)</option>
+                <option value="Foam" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Foam / Polietileno (Confort brazo)</option>
               </select>
-            </div>
-
-            {/* 8. Rango de Peso */}
-            <div>
-              <label className="font-extrabold text-zinc-300 uppercase tracking-wider block mb-2">
-                Rango de Peso
-              </label>
-              <div className="grid grid-cols-3 gap-1.5">
-                {[
-                  { label: 'Ligero', desc: '<360g', id: 'Ligero' },
-                  { label: 'Medio', desc: '360-375g', id: 'Estándar' },
-                  { label: 'Pesado', desc: '>375g', id: 'Pesado' },
-                ].map((item) => {
-                  const isSel = pesoRango === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setPesoRango(isSel ? '' : item.id)}
-                      className={`p-2 rounded-xl text-center font-bold text-xs transition-all ${
-                        isSel
-                          ? 'bg-emerald-500 text-zinc-950 font-black shadow-sm'
-                          : 'bg-zinc-900 text-zinc-400 border border-white/5 hover:text-white'
-                      }`}
-                    >
-                      <div>{item.label}</div>
-                      <div className="text-[10px] opacity-75 font-normal">{item.desc}</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 9. Año de Lanzamiento */}
-            <div>
-              <label className="font-extrabold text-zinc-300 uppercase tracking-wider block mb-2">
-                Año de Lanzamiento
-              </label>
-              <div className="flex items-center gap-2">
-                {[2026, 2025, 2024].map((ano) => {
-                  const isSel = selectedAno === ano;
-                  return (
-                    <button
-                      key={ano}
-                      type="button"
-                      onClick={() => setSelectedAno(isSel ? '' : ano)}
-                      className={`flex-1 py-1.5 rounded-xl text-center font-bold text-xs transition-all ${
-                        isSel
-                          ? 'bg-emerald-500 text-zinc-950 font-black shadow-sm'
-                          : 'bg-zinc-900 text-zinc-400 border border-white/5 hover:text-white'
-                      }`}
-                    >
-                      {ano}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 10. Rango de Precio */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="font-extrabold text-zinc-300 uppercase tracking-wider">
-                  Precio Máximo
-                </label>
-                <span className="font-bold text-emerald-400 text-xs">${precioMax}</span>
-              </div>
-              <input
-                type="range"
-                min="100"
-                max="450"
-                step="10"
-                value={precioMax}
-                onChange={(e) => setPrecioMax(Number(e.target.value))}
-                className="w-full accent-emerald-500 cursor-pointer"
-              />
             </div>
           </div>
         </aside>
@@ -777,23 +671,25 @@ export const PaletasPage: React.FC = () => {
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-[420px] rounded-3xl skeleton border border-white/5"
+                  className="h-[420px] rounded-3xl skeleton border border-zinc-200 dark:border-white/5"
                 />
               ))}
             </div>
           ) : paginatedPalas.length === 0 ? (
-            <div className="p-12 text-center rounded-3xl bg-[var(--bg-surface)] border border-dashed border-white/10 flex flex-col items-center gap-3">
-              <span className="text-4xl">🎾</span>
-              <h2 className="text-xl font-bold text-white m-0">
+            <div className="p-12 text-center rounded-3xl bg-[var(--bg-surface)] border border-dashed border-zinc-300 dark:border-white/10 flex flex-col items-center gap-3 shadow-sm transition-colors">
+              <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 mb-1">
+                <Layers size={26} />
+              </div>
+              <h2 className="text-xl font-bold text-[var(--text-primary)] m-0">
                 No se encontraron paletas con estos distintivos
               </h2>
-              <p className="text-zinc-400 text-sm max-w-md">
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm max-w-md">
                 Prueba a suavizar los filtros de dureza, marca o forma para ver más resultados del catálogo.
               </p>
               <button
                 type="button"
                 onClick={handleClearFilters}
-                className="mt-2 px-5 py-2 rounded-full bg-emerald-500 text-zinc-950 font-extrabold text-xs"
+                className="mt-2 px-5 py-2 rounded-full bg-emerald-500 text-zinc-950 font-extrabold text-xs shadow-sm hover:bg-emerald-400 transition-colors"
               >
                 Restablecer todos los filtros
               </button>
@@ -816,12 +712,12 @@ export const PaletasPage: React.FC = () => {
                 type="button"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="w-9 h-9 rounded-full flex items-center justify-center border border-white/10 bg-zinc-900 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800"
+                className="w-9 h-9 rounded-full flex items-center justify-center border border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-800 shadow-sm transition-colors"
               >
                 <ChevronLeft size={16} />
               </button>
 
-              <span className="text-xs font-bold text-zinc-400 px-3">
+              <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400 px-3">
                 Página {page} de {totalPages}
               </span>
 
@@ -829,7 +725,7 @@ export const PaletasPage: React.FC = () => {
                 type="button"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="w-9 h-9 rounded-full flex items-center justify-center border border-white/10 bg-zinc-900 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-800"
+                className="w-9 h-9 rounded-full flex items-center justify-center border border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-800 shadow-sm transition-colors"
               >
                 <ChevronRight size={16} />
               </button>

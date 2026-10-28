@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { PaleteroItem } from '../../types';
-import { Trash2, ExternalLink, AlertTriangle, X, Check } from 'lucide-react';
+import { Trash2, AlertTriangle, X, Check, Sparkles } from 'lucide-react';
 
 interface PerfilPaletaCardProps {
   item: PaleteroItem;
@@ -11,8 +11,11 @@ interface PerfilPaletaCardProps {
 export const PerfilPaletaCard: React.FC<PerfilPaletaCardProps> = ({ item, onEliminar }) => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsDeleting(true);
     try {
       await onEliminar(item.palaId, item.categoria);
@@ -26,81 +29,56 @@ export const PerfilPaletaCard: React.FC<PerfilPaletaCardProps> = ({ item, onElim
 
   return (
     <>
-      <div className="relative group bg-zinc-900/80 hover:bg-zinc-900 border border-white/10 hover:border-emerald-500/40 rounded-2xl p-4 transition-all duration-300 shadow-md hover:shadow-xl flex flex-col justify-between gap-4">
-        {/* Parte superior: Foto, Marca, Modelo y Forma */}
-        <div className="flex gap-4 items-start">
-          {/* Contenedor de la foto de la pala */}
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-zinc-800/80 border border-white/5 flex-shrink-0 flex items-center justify-center p-1 overflow-hidden group-hover:scale-105 transition-transform duration-300">
-            {item.palaImagenUrl ? (
-              <img
-                src={item.palaImagenUrl}
-                alt={item.palaModelo}
-                loading="lazy"
-                className="w-full h-full object-contain drop-shadow-md"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src =
-                    'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=300&q=80';
-                }}
-              />
-            ) : (
-              <div className="text-zinc-600 font-bold text-xs">Sin Foto</div>
-            )}
-          </div>
-
-          {/* Datos principales */}
-          <div className="flex flex-col gap-1 min-w-0 flex-1">
-            <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider truncate">
-              {item.palaMarca}
-            </span>
-            <h4 className="text-sm sm:text-base font-extrabold text-white leading-snug truncate group-hover:text-emerald-300 transition-colors">
-              {item.palaModelo}
-            </h4>
-
-            {/* Badges de especificaciones */}
-            <div className="flex flex-wrap gap-1.5 mt-1">
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-zinc-800 text-zinc-300 border border-white/5">
-                {item.palaForma || 'Lágrima'}
-              </span>
-              {item.palaPrecioReferencia > 0 && (
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  {item.palaPrecioReferencia} €
-                </span>
-              )}
+      <Link
+        to={`/paletas/${item.palaId}`}
+        title={`${item.palaMarca} ${item.palaModelo}`}
+        className="group relative flex items-center justify-center p-3 sm:p-4 rounded-2xl bg-[var(--bg-card)] dark:bg-zinc-900/60 hover:bg-[var(--bg-card-hover)] dark:hover:bg-zinc-900 border border-zinc-200/80 dark:border-white/10 hover:border-emerald-500/50 shadow-sm hover:shadow-xl transition-all duration-300 aspect-[3/4] overflow-hidden cursor-pointer active:scale-95"
+      >
+        {/* Imagen de la paleta únicamente (sin textos ni badges en pantalla) */}
+        {item.palaImagenUrl && !imgError ? (
+          <img
+            src={item.palaImagenUrl}
+            alt={`${item.palaMarca} ${item.palaModelo}`}
+            loading="lazy"
+            className="w-full h-full object-contain filter drop-shadow-lg group-hover:scale-105 group-hover:-translate-y-1 transition-transform duration-300 pointer-events-none"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center text-emerald-600 dark:text-emerald-400 gap-2 p-2">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+              <Sparkles size={24} />
             </div>
-
-            {item.notas && (
-              <p className="text-xs text-zinc-400 italic line-clamp-1 mt-1 font-normal">
-                "{item.notas}"
-              </p>
-            )}
+            <span className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 text-center truncate max-w-full">
+              {item.palaModelo}
+            </span>
           </div>
-        </div>
+        )}
 
-        {/* Acciones inferiores: Ver Ficha y Quitar */}
-        <div className="flex items-center justify-between pt-3 border-t border-white/5 gap-2">
-          <Link
-            to={`/paletas/${item.palaId}`}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
-          >
-            <span>Ver Ficha</span>
-            <ExternalLink size={13} />
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => setShowConfirm(true)}
-            title="Quitar del paletero"
-            className="inline-flex items-center gap-1 text-xs font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 px-2.5 py-1.5 rounded-lg border border-transparent hover:border-rose-500/20 transition-all active:scale-95"
-          >
-            <Trash2 size={14} />
-            <span>Quitar</span>
-          </button>
-        </div>
-      </div>
+        {/* Botón sutil de eliminar que solo aparece al pasar el cursor (hover) */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowConfirm(true);
+          }}
+          title="Quitar pala"
+          className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-xl bg-black/60 hover:bg-rose-600 text-zinc-300 hover:text-white backdrop-blur-md shadow-md z-10 active:scale-90"
+        >
+          <Trash2 size={15} />
+        </button>
+      </Link>
 
       {/* Modal / Diálogo de Confirmación Emergente */}
       {showConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowConfirm(false);
+          }}
+        >
           <div
             className="bg-zinc-900 border border-white/15 rounded-3xl p-6 max-w-sm w-full shadow-2xl flex flex-col gap-4 animate-scale-in"
             onClick={(e) => e.stopPropagation()}
@@ -120,7 +98,7 @@ export const PerfilPaletaCard: React.FC<PerfilPaletaCardProps> = ({ item, onElim
             </div>
 
             <div>
-              <h3 className="text-base font-black text-white">¿Quitar del paletero?</h3>
+              <h3 className="text-base font-black text-white">¿Quitar pala del paletero?</h3>
               <p className="text-xs sm:text-sm text-zinc-400 mt-1 leading-relaxed">
                 ¿Estás seguro de que deseás quitar{' '}
                 <strong className="text-zinc-200">

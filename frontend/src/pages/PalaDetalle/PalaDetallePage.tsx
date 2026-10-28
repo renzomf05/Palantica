@@ -9,9 +9,7 @@ import { padelgramApi } from '../../api/padelgram';
 import { useAuth } from '../../hooks/useAuth';
 import type { PalaDetalle, Resena, CategoriaPaletero, PadelgramPost } from '../../types';
 import { RadarChart } from '../../components/palas/RadarChart';
-import { AcordesDeJuego } from '../../components/palas/AcordesDeJuego';
 import { PiramideMateriales } from '../../components/palas/PiramideMateriales';
-import { MatrizTermica } from '../../components/palas/MatrizTermica';
 import { SentimientoJugador } from '../../components/palas/SentimientoJugador';
 import { PrecioReferenciaBox } from '../../components/palas/PrecioReferenciaBox';
 import { Skeleton } from '../../components/ui/Skeleton';
@@ -26,8 +24,7 @@ import {
   ArrowLeft,
   ArrowLeftRight,
   Camera,
-  ThumbsUp,
-  ThumbsDown
+  Heart
 } from 'lucide-react';
 
 export const PalaDetallePage: React.FC = () => {
@@ -41,8 +38,9 @@ export const PalaDetallePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [loadingResenas, setLoadingResenas] = useState(true);
 
-  // Validación comunitaria de similitud ("¿Se siente igual en pista?")
-  const [similarVotes, setSimilarVotes] = useState<Record<number, 'yes' | 'no'>>({});
+  // Favoritos / Likes ("Me gusta esta pala" con corazón)
+  const [mainPalaLiked, setMainPalaLiked] = useState(false);
+  const [likedPalas, setLikedPalas] = useState<Record<number, boolean>>({});
 
   // Modales
   const [showResenaModal, setShowResenaModal] = useState(false);
@@ -179,13 +177,21 @@ export const PalaDetallePage: React.FC = () => {
       return;
     }
     try {
-      await resenasApi.publicarResena(activePalaId, {
-        puntuacion: resenaPuntuacion,
-        titulo: resenaTitulo,
-        contenido: resenaContenido,
-        ladoPista: resenaLado,
-        tiempoUso: resenaTiempo,
-      });
+      await resenasApi.publicarResena(
+        activePalaId,
+        {
+          puntuacion: resenaPuntuacion,
+          titulo: resenaTitulo,
+          contenido: resenaContenido,
+          ladoPista: resenaLado,
+          tiempoUso: resenaTiempo,
+        },
+        {
+          modelo: pala?.modelo || 'Pala de Pádel',
+          marca: pala?.marcaNombre || 'Marca',
+          imagenUrl: pala?.imagenUrl || undefined,
+        }
+      );
       setShowResenaModal(false);
       setResenaTitulo('');
       setResenaContenido('');
@@ -240,17 +246,21 @@ export const PalaDetallePage: React.FC = () => {
       return;
     }
 
-    if (targetPalaId >= 90000) {
-      setPaleteroError('Esta pala proviene del catálogo externo y aún no fue sincronizada con la base de datos.');
-      return;
-    }
-
     setPaleteroLoading(true);
     try {
       await paleteroApi.addItem({
         palaId: targetPalaId,
         categoria: paleteroCat,
         notas: paleteroNotas || undefined,
+        palaData: {
+          palaModelo: pala?.modelo || 'Pala de Pádel',
+          palaMarca: pala?.marcaNombre || 'Marca',
+          palaForma: pala?.forma || 'Lágrima',
+          palaImagenUrl: pala?.imagenUrl || null,
+          palaPuntuacionGeneral: pala?.puntuacionGeneral || 9.0,
+          palaDurezaPromedio: pala?.durezaPromedio || 7.0,
+          palaPrecioReferencia: pala?.precioReferencia || 250,
+        },
       });
       setPaleteroSuccess(true);
       setTimeout(() => {
@@ -266,10 +276,10 @@ export const PalaDetallePage: React.FC = () => {
     }
   };
 
-  const handleVoteSimilar = (similarId: number, type: 'yes' | 'no') => {
-    setSimilarVotes((prev) => ({
+  const handleToggleLikeSimilar = (similarId: number) => {
+    setLikedPalas((prev) => ({
       ...prev,
-      [similarId]: type,
+      [similarId]: !prev[similarId],
     }));
   };
 
@@ -298,7 +308,7 @@ export const PalaDetallePage: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', width: '100%' }}>
       {/* Botón Volver */}
       <Link
-        to="/catalogo"
+        to="/paletas"
         style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -335,13 +345,40 @@ export const PalaDetallePage: React.FC = () => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 height: '330px',
-                background: 'radial-gradient(circle at 50% 35%, var(--bg-card-hover) 0%, var(--bg-input) 100%)',
+                background: 'var(--pedestal-gradient)',
                 borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)',
+                border: '1px solid var(--border-card)',
                 position: 'relative',
-                boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.25)',
+                boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.1)',
               }}
             >
+              {/* Botón de Like / Favorito con Corazón */}
+              <button
+                type="button"
+                onClick={() => setMainPalaLiked(!mainPalaLiked)}
+                style={{
+                  position: 'absolute',
+                  top: '14px',
+                  left: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: 'var(--radius-full)',
+                  background: mainPalaLiked ? 'rgba(239, 68, 68, 0.15)' : 'var(--bg-glass-card)',
+                  backdropFilter: 'blur(8px)',
+                  border: mainPalaLiked ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)',
+                  color: mainPalaLiked ? '#ef4444' : 'var(--text-muted)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  zIndex: 2,
+                }}
+                title={mainPalaLiked ? 'Guardada en tus me gusta' : 'Guardar en me gusta'}
+              >
+                <Heart size={18} fill={mainPalaLiked ? '#ef4444' : 'none'} />
+              </button>
+
               <img
                 src={pala.imagenUrl || 'https://noxsport.es/cdn/shop/files/PALA_NOX_AT10_GENIUS_18K_BY_AGUSTIN_TAPIA_2025_01.png'}
                 alt={pala.modelo}
@@ -349,7 +386,7 @@ export const PalaDetallePage: React.FC = () => {
                   maxHeight: '90%',
                   maxWidth: '90%',
                   objectFit: 'contain',
-                  filter: 'drop-shadow(0 16px 28px rgba(0,0,0,0.65))',
+                  filter: 'drop-shadow(0 14px 24px rgba(0,0,0,0.35))',
                 }}
               />
               <div
@@ -456,15 +493,6 @@ export const PalaDetallePage: React.FC = () => {
             COLUMNA DERECHA: Componentes Enciclopédicos de Palantica
             ========================================================== */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '26px' }}>
-          {/* 1. Sensaciones Principales en Pista */}
-          <AcordesDeJuego
-            potencia={pala.potenciaPromedio}
-            control={pala.controlPromedio}
-            salidaBola={pala.salidaBolaPromedio}
-            maniobrabilidad={pala.maniobrabilidadPromedio}
-            puntoDulce={pala.puntoDulcePromedio}
-            confort={pala.confortPromedio}
-          />
 
           {/* 2. Pirámide de Construcción Técnica (3 Niveles: Caras, Núcleo, Chasis) */}
           <PiramideMateriales
@@ -505,12 +533,6 @@ export const PalaDetallePage: React.FC = () => {
             </div>
           </section>
 
-          {/* 4. Comportamiento Térmico & Escala de Dureza */}
-          <MatrizTermica
-            dureza={pala.durezaPromedio}
-            estacionOptima={pala.estacionOptima}
-            totalVotos={pala.totalVotos}
-          />
 
           {/* 5. Sentimiento de la Comunidad (5 Estados sin emojis) */}
           <SentimientoJugador
@@ -542,7 +564,7 @@ export const PalaDetallePage: React.FC = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
                 {pala.palasSimilares.map((sim) => {
-                  const userVote = similarVotes[sim.id];
+                  const isLiked = likedPalas[sim.id];
 
                   return (
                     <div
@@ -602,82 +624,57 @@ export const PalaDetallePage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Botón de Validación Comunitaria de Similitud */}
+                      {/* Botón de Guardado con Corazón y Comparar */}
                       <div
                         style={{
                           borderTop: '1px solid var(--border-subtle)',
                           paddingTop: '10px',
                           display: 'flex',
-                          flexDirection: 'column',
-                          gap: '6px',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '8px',
                         }}
                       >
-                        <span style={{ fontSize: '0.70rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-                          ¿Se siente igual en pista?
-                        </span>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button
-                            onClick={() => handleVoteSimilar(sim.id, 'yes')}
-                            style={{
-                              flex: 1,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '4px',
-                              padding: '6px 8px',
-                              borderRadius: 'var(--radius-xs)',
-                              fontSize: '0.74rem',
-                              fontWeight: 700,
-                              background: userVote === 'yes' ? 'rgba(16, 185, 129, 0.2)' : 'var(--bg-card)',
-                              border: userVote === 'yes' ? '1px solid var(--padel-turf-green)' : '1px solid var(--border-subtle)',
-                              color: userVote === 'yes' ? 'var(--padel-turf-green)' : 'var(--text-primary)',
-                            }}
-                          >
-                            <ThumbsUp size={12} />
-                            <span>Sí, gemelas</span>
-                          </button>
-
-                          <button
-                            onClick={() => handleVoteSimilar(sim.id, 'no')}
-                            style={{
-                              flex: 1,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '4px',
-                              padding: '6px 8px',
-                              borderRadius: '0px',
-                              fontSize: '0.74rem',
-                              fontWeight: 700,
-                              background: userVote === 'no' ? 'rgba(239, 68, 68, 0.15)' : 'var(--bg-card)',
-                              border: userVote === 'no' ? '1px solid var(--accord-potencia)' : '1px solid var(--border-subtle)',
-                              color: userVote === 'no' ? 'var(--accord-potencia)' : 'var(--text-muted)',
-                            }}
-                          >
-                            <ThumbsDown size={12} />
-                            <span>Diferente</span>
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleLikeSimilar(sim.id)}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '6px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            background: isLiked ? 'rgba(239, 68, 68, 0.12)' : 'var(--bg-card)',
+                            border: isLiked ? '1px solid rgba(239, 68, 68, 0.35)' : '1px solid var(--border-subtle)',
+                            color: isLiked ? '#ef4444' : 'var(--text-secondary)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <Heart size={13} fill={isLiked ? '#ef4444' : 'none'} />
+                          <span>{isLiked ? 'Te gusta' : 'Me gusta'}</span>
+                        </button>
 
                         <Link
                           to={`/comparador?pala1=${pala.id}&pala2=${sim.id}`}
                           style={{
-                            display: 'flex',
+                            display: 'inline-flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
                             gap: '4px',
-                            padding: '5px 8px',
-                            borderRadius: '0px',
-                            fontSize: '0.72rem',
+                            padding: '6px 10px',
+                            borderRadius: 'var(--radius-sm)',
+                            fontSize: '0.75rem',
                             fontWeight: 700,
                             background: 'rgba(37, 99, 235, 0.10)',
-                            border: '1px solid rgba(37, 99, 235, 0.35)',
+                            border: '1px solid rgba(37, 99, 235, 0.30)',
                             color: 'var(--padel-court-blue-light)',
-                            marginTop: '4px',
+                            textDecoration: 'none',
                           }}
                         >
                           <ArrowLeftRight size={12} />
-                          <span>Comparar A/B</span>
+                          <span>Comparar</span>
                         </Link>
                       </div>
                     </div>
@@ -1066,9 +1063,11 @@ export const PalaDetallePage: React.FC = () => {
                     className="input-field"
                   >
                     <option value="Usando actualmente">Usando actualmente (Pala titular)</option>
-                    <option value="En el paletero">En el paletero (Suplente / Reserva)</option>
+                    <option value="Palas que me gustaron">Palas que me gustaron</option>
+                    <option value="Palas que no me gustaron">Palas que no me gustaron</option>
                     <option value="Palas que quiero">Palas que quiero (Wishlist)</option>
                     <option value="Palas que tuve">Palas que tuve (Historial)</option>
+                    <option value="En el paletero">En el paletero (Suplente / Reserva)</option>
                   </select>
                 </div>
 

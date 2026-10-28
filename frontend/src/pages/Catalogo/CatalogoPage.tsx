@@ -20,7 +20,8 @@ import {
   RotateCcw,
   Sparkles,
   ArrowLeftRight,
-  Crosshair
+  Crosshair,
+  Star
 } from 'lucide-react';
 
 export const CatalogoPage: React.FC = () => {
@@ -877,8 +878,9 @@ export const CatalogoPage: React.FC = () => {
                           <span style={{ fontWeight: 800, color: 'var(--padel-turf-green)', fontSize: '0.95rem' }}>
                             {item.precio.toFixed(2)} {item.moneda}
                           </span>
-                          <div style={{ fontSize: '0.74rem', color: '#f59e0b', fontWeight: 700 }}>
-                            ★ {item.puntuacionGeneral.toFixed(1)}/10
+                          <div style={{ fontSize: '0.74rem', color: '#f59e0b', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '3px' }}>
+                            <Star size={11} fill="#f59e0b" color="#f59e0b" />
+                            <span>{item.puntuacionGeneral.toFixed(1)}/10</span>
                           </div>
                         </div>
                       </div>

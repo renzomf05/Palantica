@@ -4,6 +4,17 @@
 @theme {
   --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-display: 'Plus Jakarta Sans', 'Helvetica Neue', Helvetica, 'Inter', sans-serif;
+  --color-bg-deep: var(--bg-deep);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-subtle: var(--bg-card-subtle);
+  --color-bg-card-hover: var(--bg-card-hover);
+  --color-bg-input: var(--bg-input);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-card: var(--border-card);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
 }
 
 @layer base {
@@ -254,9 +265,9 @@
 }
 
 .badge-neutral {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-card-subtle);
   color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-card);
 }
 
 /* ==========================================================

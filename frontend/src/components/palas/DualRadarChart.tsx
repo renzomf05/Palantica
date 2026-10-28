@@ -171,7 +171,7 @@ export const DualRadarChart: React.FC<DualRadarChartProps> = ({
                 {val2 && (
                   <>
                     <tspan fill="var(--text-muted)"> | </tspan>
-                    <tspan fill="#A3E635">{val2}</tspan>
+                    <tspan fill="var(--radar-volt-text, #4D7C0F)">{val2}</tspan>
                   </>
                 )}
               </text>

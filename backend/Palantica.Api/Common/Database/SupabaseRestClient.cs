@@ -50,7 +50,8 @@ public sealed class SupabaseRestClient
         response.EnsureSuccessStatusCode();
 
         int totalCount = 0;
-        if (response.Headers.TryGetValues("Content-Range", out var rangeValues))
+        if (response.Headers.TryGetValues("Content-Range", out var rangeValues) ||
+            response.Content.Headers.TryGetValues("Content-Range", out rangeValues))
         {
             var rangeHeader = rangeValues.FirstOrDefault();
             if (!string.IsNullOrEmpty(rangeHeader) && rangeHeader.Contains('/'))

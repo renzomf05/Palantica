@@ -14,6 +14,8 @@ import {
   Search,
   Check,
   ChevronDown,
+  Lightbulb,
+  X,
 } from 'lucide-react';
 
 export const ComparadorPage: React.FC = () => {
@@ -288,7 +290,7 @@ export const ComparadorPage: React.FC = () => {
                 style={{
                   width: '80px',
                   height: '80px',
-                  background: 'radial-gradient(circle, var(--bg-card-hover) 0%, var(--bg-deep) 100%)',
+                  background: 'var(--pedestal-gradient)',
                   borderRadius: '0px',
                   border: '1px solid var(--border-card)',
                   display: 'flex',
@@ -383,7 +385,7 @@ export const ComparadorPage: React.FC = () => {
                 style={{
                   width: '80px',
                   height: '80px',
-                  background: 'radial-gradient(circle, var(--bg-card-hover) 0%, var(--bg-deep) 100%)',
+                  background: 'var(--pedestal-gradient)',
                   borderRadius: '0px',
                   border: '1px solid var(--border-card)',
                   display: 'flex',
@@ -448,9 +450,9 @@ export const ComparadorPage: React.FC = () => {
             </h3>
             <button
               onClick={() => setSelectorOpenSlot(null)}
-              style={{ fontSize: '0.80rem', color: 'var(--text-muted)', fontWeight: 700 }}
+              style={{ fontSize: '0.80rem', color: 'var(--text-muted)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
             >
-              Cerrar ✕
+              Cerrar <X size={13} />
             </button>
           </div>
 
@@ -722,8 +724,9 @@ export const ComparadorPage: React.FC = () => {
             <p>
               • <strong>{pala2.marcaNombre} {pala2.modelo}:</strong> Optimizada para jugadores con {veredicto.perfilPala2}.
             </p>
-            <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
-              💡 {veredicto.comparacionClave}
+            <p style={{ color: 'var(--text-secondary)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Lightbulb size={16} color="#f59e0b" style={{ flexShrink: 0 }} />
+              <span>{veredicto.comparacionClave}</span>
             </p>
           </div>
 

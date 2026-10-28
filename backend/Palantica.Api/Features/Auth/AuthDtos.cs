@@ -67,5 +67,72 @@ public sealed record PerfilResponse(
     int TotalResenas,
     int TotalVotos,
     int TotalPaletero,
-    int TotalPadelgramPosts
+    int TotalPadelgramPosts,
+    bool EmailVerificado = true,
+    bool TwoFactorEnabled = false
+);
+
+// ==========================================
+// ÉPICA 2: VERIFICACIÓN DE CORREO (OTP)
+// ==========================================
+
+public sealed record VerificarCodigoRequest(
+    [Required(ErrorMessage = "El email es obligatorio.")]
+    [EmailAddress]
+    string Email,
+
+    [Required(ErrorMessage = "El código es obligatorio.")]
+    [StringLength(6, MinimumLength = 6, ErrorMessage = "El código debe tener 6 dígitos.")]
+    string Codigo
+);
+
+public sealed record ReenviarCodigoRequest(
+    [Required(ErrorMessage = "El email es obligatorio.")]
+    [EmailAddress]
+    string Email
+);
+
+public sealed record RegistroPendienteResponse(
+    string Message,
+    string Email,
+    bool RequiresVerification,
+    string? DevCode = null
+);
+
+// ==========================================
+// ÉPICA 3: AUTENTICACIÓN EN 2 PASOS (2FA TOTP)
+// ==========================================
+
+public sealed record TwoFactorSetupResponse(
+    string Secret,
+    string QrUri
+);
+
+public sealed record ActivarTwoFactorRequest(
+    [Required(ErrorMessage = "El secreto es requerido.")]
+    string Secret,
+
+    [Required(ErrorMessage = "El código TOTP de 6 dígitos es requerido.")]
+    [StringLength(6, MinimumLength = 6, ErrorMessage = "El código TOTP debe tener 6 dígitos.")]
+    string Codigo
+);
+
+public sealed record DesactivarTwoFactorRequest(
+    [Required(ErrorMessage = "La contraseña es obligatoria.")]
+    string Password
+);
+
+public sealed record TwoFactorRequeridoResponse(
+    bool Requires2FA,
+    string TempToken,
+    string Email
+);
+
+public sealed record VerificarTwoFactorLoginRequest(
+    [Required(ErrorMessage = "El token temporal es obligatorio.")]
+    string TempToken,
+
+    [Required(ErrorMessage = "El código TOTP es obligatorio.")]
+    [StringLength(6, MinimumLength = 6, ErrorMessage = "El código debe tener 6 dígitos.")]
+    string Codigo
 );

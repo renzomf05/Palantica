@@ -127,11 +127,11 @@ export const AcordesDeJuego: React.FC<AcordesDeJuegoProps> = ({
                   position: 'relative',
                   width: '100%',
                   height: '36px',
-                  background: 'var(--bg-input)',
+                  background: 'var(--bg-card-subtle)',
                   borderRadius: 'var(--radius-sm)',
                   overflow: 'hidden',
-                  border: '1px solid var(--border-subtle)',
-                  boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.15)',
+                  border: '1px solid var(--border-card)',
+                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06)',
                 }}
               >
                 {/* Barra horizontal animada */}

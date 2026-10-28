@@ -263,7 +263,7 @@ export const PaleteroPage: React.FC = () => {
                     style={{
                       width: '74px',
                       height: '74px',
-                      background: 'radial-gradient(circle, var(--bg-card-hover) 0%, var(--bg-deep) 100%)',
+                      background: 'var(--pedestal-gradient)',
                       borderRadius: '0px',
                       border: '1px solid var(--border-card)',
                       display: 'flex',

@@ -321,7 +321,7 @@ export const CatalogoPadelfulPage: React.FC = () => {
                             : 'bg-zinc-800/80 text-zinc-400 hover:text-white border border-white/5'
                         }`}
                       >
-                        {s === 'Lagrima' ? '💧 Lágrima' : s === 'Diamante' ? '💎 Diamante' : s === 'Redonda' ? '⭕ Redonda' : 'Todas'}
+                        {s === 'Lagrima' ? 'Lágrima' : s === 'Diamante' ? 'Diamante' : s === 'Redonda' ? 'Redonda' : 'Todas'}
                       </button>
                     ))}
                   </div>
@@ -398,7 +398,7 @@ export const CatalogoPadelfulPage: React.FC = () => {
         ) : paginatedRackets.length === 0 ? (
           /* Estado Vacío */
           <div className="p-16 text-center rounded-3xl bg-zinc-900/50 border border-dashed border-white/10 flex flex-col items-center gap-3 my-8">
-            <span className="text-5xl">🎾</span>
+            <Layers size={48} className="text-zinc-500" />
             <h2 className="text-xl font-bold text-white m-0">No se encontraron palas de Padelful</h2>
             <p className="text-zinc-400 text-sm max-w-md">
               Prueba a suavizar los filtros de marca o busca por un término más general.

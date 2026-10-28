@@ -1,6 +1,6 @@
 import React, { useState, useEffect, type ReactNode } from 'react';
 import { authApi } from '../api/auth';
-import type { Usuario, AuthResponse } from '../types';
+import type { Usuario, AuthResponse, RegistroPendienteResponse, TwoFactorRequeridoResponse } from '../types';
 import { AuthContext } from './authContextInstance';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -53,7 +53,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (email: string, password: string) => {
     const response = await authApi.login({ email, password });
-    saveAuthSession(response);
+    
+    // Si la respuesta requiere 2FA
+    if ('requires2FA' in response && response.requires2FA) {
+      return response as TwoFactorRequeridoResponse;
+    }
+
+    // Login estándar completado
+    saveAuthSession(response as AuthResponse);
   };
 
   const registrar = async (data: {
@@ -62,9 +69,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     nombre: string;
     nivelJuego?: string;
     ladoPistaPreferido?: string;
-  }) => {
+  }): Promise<RegistroPendienteResponse> => {
     const response = await authApi.registrar(data);
-    saveAuthSession(response);
+    return response;
   };
 
   return (
@@ -76,6 +83,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isLoading,
         login,
         registrar,
+        saveAuthSession,
         logout,
       }}
     >

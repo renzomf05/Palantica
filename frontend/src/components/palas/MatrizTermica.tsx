@@ -59,10 +59,10 @@ export const MatrizTermica: React.FC<MatrizTermicaProps> = ({
       {/* Escala de Dureza Graduada */}
       <div
         style={{
-          background: 'var(--bg-input)',
+          background: 'var(--bg-card-subtle)',
           padding: '16px',
           borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--border-subtle)',
+          border: '1px solid var(--border-card)',
           display: 'flex',
           flexDirection: 'column',
           gap: '12px',
@@ -85,7 +85,7 @@ export const MatrizTermica: React.FC<MatrizTermicaProps> = ({
             height: '14px',
             borderRadius: 'var(--radius-full)',
             background: 'linear-gradient(90deg, #38BDF8 0%, #10B981 40%, #F59E0B 75%, #EF4444 100%)',
-            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.35)',
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.15)',
             margin: '4px 0',
           }}
         >
@@ -100,7 +100,7 @@ export const MatrizTermica: React.FC<MatrizTermicaProps> = ({
               borderRadius: 'var(--radius-full)',
               background: 'var(--bg-card)',
               border: '3px solid var(--padel-court-blue-vibrant)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.45), 0 0 8px var(--padel-court-blue-glow)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.25), 0 0 8px var(--padel-court-blue-glow)',
               transition: 'left 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           />
@@ -119,9 +119,9 @@ export const MatrizTermica: React.FC<MatrizTermicaProps> = ({
         <div
           style={{
             padding: '14px 16px',
-            background: 'var(--bg-input)',
+            background: 'var(--bg-card-subtle)',
             borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--border-subtle)',
+            border: '1px solid var(--border-card)',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',
@@ -161,9 +161,9 @@ export const MatrizTermica: React.FC<MatrizTermicaProps> = ({
         <div
           style={{
             padding: '14px 16px',
-            background: 'var(--bg-input)',
+            background: 'var(--bg-card-subtle)',
             borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--border-subtle)',
+            border: '1px solid var(--border-card)',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',
@@ -203,9 +203,9 @@ export const MatrizTermica: React.FC<MatrizTermicaProps> = ({
         <div
           style={{
             padding: '14px 16px',
-            background: 'var(--bg-input)',
+            background: 'var(--bg-card-subtle)',
             borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--border-subtle)',
+            border: '1px solid var(--border-card)',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',
@@ -245,9 +245,9 @@ export const MatrizTermica: React.FC<MatrizTermicaProps> = ({
         <div
           style={{
             padding: '14px 16px',
-            background: 'var(--bg-input)',
+            background: 'var(--bg-card-subtle)',
             borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--border-subtle)',
+            border: '1px solid var(--border-card)',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',

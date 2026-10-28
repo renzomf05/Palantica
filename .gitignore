@@ -20,6 +20,8 @@ obj/
 *.useros
 .vs/
 .vscode/
+.dotnet/
+.dotnet_tmp/
 
 # Node & Frontend
 node_modules/

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import type { Pala } from '../../types';
 import { Star, Layers, Disc, Zap, Shield } from 'lucide-react';
+import { formatPalaModelOnly } from '../../utils/formatters';
 
 interface PalaCardProps {
   pala: Pala;
@@ -26,7 +27,7 @@ export const PalaCard: React.FC<PalaCardProps> = ({ pala }) => {
         style={{
           width: '100%',
           height: '220px',
-          background: 'radial-gradient(ellipse at 50% 30%, var(--bg-card-hover) 0%, var(--bg-input) 100%)',
+          background: 'var(--pedestal-gradient)',
           borderRadius: 'var(--radius-md)',
           display: 'flex',
           alignItems: 'center',
@@ -34,7 +35,7 @@ export const PalaCard: React.FC<PalaCardProps> = ({ pala }) => {
           position: 'relative',
           overflow: 'hidden',
           marginBottom: '14px',
-          border: '1px solid var(--border-subtle)',
+          border: '1px solid var(--border-card)',
           boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.08)',
         }}
       >
@@ -130,7 +131,7 @@ export const PalaCard: React.FC<PalaCardProps> = ({ pala }) => {
             lineHeight: 1.25,
           }}
         >
-          {pala.modelo}
+          {formatPalaModelOnly(pala.marcaNombre, pala.modelo) || pala.modelo}
         </h3>
 
         {pala.jugadorPro ? (
@@ -148,13 +149,13 @@ export const PalaCard: React.FC<PalaCardProps> = ({ pala }) => {
           style={{
             marginTop: '12px',
             padding: '10px 12px',
-            background: 'var(--bg-input)',
+            background: 'var(--bg-card-subtle)',
             borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--border-subtle)',
+            border: '1px solid var(--border-card)',
             display: 'flex',
             flexDirection: 'column',
             gap: '6px',
-            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.15)',
+            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '7px', overflow: 'hidden' }}>
@@ -202,7 +203,7 @@ export const PalaCard: React.FC<PalaCardProps> = ({ pala }) => {
             justifyContent: 'space-between',
             marginTop: 'auto',
             paddingTop: '12px',
-            borderTop: '1px solid var(--border-subtle)',
+            borderTop: '1px solid var(--border-card)',
           }}
         >
           <div style={{ display: 'flex', gap: '10px' }}>

@@ -96,6 +96,21 @@ export const apiClient = {
       params,
     }),
 
+  put: <T>(endpoint: string, body?: any, params?: RequestOptions['params']) =>
+    request<T>(endpoint, {
+      method: 'PUT',
+      body: body ? JSON.stringify(body) : undefined,
+      params,
+    }),
+
+  patch: <T>(endpoint: string, body?: any, params?: RequestOptions['params']) =>
+    request<T>(endpoint, {
+      method: 'PATCH',
+      body: body ? JSON.stringify(body) : undefined,
+      params,
+    }),
+
   delete: <T>(endpoint: string, params?: RequestOptions['params']) =>
     request<T>(endpoint, { method: 'DELETE', params }),
 };
+

@@ -12,6 +12,9 @@ import { PaleteroPage } from './pages/Paletero/PaleteroPage';
 import { PerfilPage } from './pages/Perfil/PerfilPage';
 import { LoginPage } from './pages/Auth/LoginPage';
 import { RegistroPage } from './pages/Auth/RegistroPage';
+import { VerificarEmailPage } from './pages/Auth/VerificarEmailPage';
+import { AdminPage } from './pages/Admin/AdminPage';
+import { ProtectedAdminRoute } from './components/auth/ProtectedAdminRoute';
 
 const NotFoundPage: React.FC = () => (
   <div className="max-w-md mx-auto my-16 p-8 rounded-3xl bg-[var(--bg-surface)] border border-white/10 shadow-2xl text-center flex flex-col items-center gap-4">
@@ -53,8 +56,17 @@ export const App: React.FC = () => {
             {/* Funcionalidades auxiliares */}
             <Route path="/paletero" element={<PaleteroPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminPage />
+                </ProtectedAdminRoute>
+              }
+            />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/registro" element={<RegistroPage />} />
+            <Route path="/verificar-email" element={<VerificarEmailPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </MobileLayout>

@@ -281,17 +281,17 @@ export const NuevosLanzamientosCircuit: React.FC = () => {
   return (
     <section className="w-full flex flex-col gap-5 my-6">
       {/* Cabecera ampliada con Controles y Filtros Rápidos */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-white/10 pb-4 transition-colors">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
               <Flame size={18} />
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white m-0">
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[var(--text-primary)] m-0">
               Nuevos Lanzamientos & Circuito
             </h2>
           </div>
-          <p className="text-xs sm:text-sm text-zinc-400 font-medium">
+          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-medium">
             Palas oficiales 2026 conectadas con el ranking FIP y el calendario Premier Padel.
           </p>
         </div>
@@ -299,7 +299,7 @@ export const NuevosLanzamientosCircuit: React.FC = () => {
         {/* Controles de navegación y Filtros */}
         <div className="flex items-center gap-3 self-end sm:self-auto">
           {/* Filtros pills */}
-          <div className="flex items-center gap-1 bg-zinc-900/90 p-1 rounded-full border border-white/10">
+          <div className="flex items-center gap-1 bg-[var(--bg-card-subtle)] p-1 rounded-full border border-zinc-200 dark:border-white/10 transition-colors">
             {(['TODOS', 'LANZAMIENTOS', 'RANKINGS', 'TORNEOS'] as const).map((f) => {
               const active = filtroActivo === f;
               return (
@@ -310,7 +310,7 @@ export const NuevosLanzamientosCircuit: React.FC = () => {
                   className={`px-3 py-1.5 text-[11px] font-bold rounded-full transition-all ${
                     active
                       ? 'bg-emerald-500 text-zinc-950 shadow-md shadow-emerald-500/30'
-                      : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
                 >
                   {f}
@@ -320,7 +320,7 @@ export const NuevosLanzamientosCircuit: React.FC = () => {
           </div>
 
           {/* Flechas de desplazamiento izquierda / derecha */}
-          <div className="flex items-center gap-1.5 bg-zinc-900/80 p-1 rounded-full border border-white/10">
+          <div className="flex items-center gap-1.5 bg-[var(--bg-card-subtle)] p-1 rounded-full border border-zinc-200 dark:border-white/10 transition-colors">
             <button
               type="button"
               onClick={() => handleScroll('left')}
@@ -328,8 +328,8 @@ export const NuevosLanzamientosCircuit: React.FC = () => {
               aria-label="Desplazar hacia la izquierda"
               className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                 canScrollLeft
-                  ? 'bg-zinc-800 text-white hover:bg-emerald-500 hover:text-zinc-950 active:scale-95 shadow-sm'
-                  : 'text-zinc-600 cursor-not-allowed opacity-40'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-white hover:bg-emerald-500 hover:text-zinc-950 active:scale-95 shadow-sm'
+                  : 'text-zinc-400 dark:text-zinc-600 cursor-not-allowed opacity-40'
               }`}
             >
               <ChevronLeft size={18} />
@@ -341,8 +341,8 @@ export const NuevosLanzamientosCircuit: React.FC = () => {
               aria-label="Desplazar hacia la derecha"
               className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                 canScrollRight
-                  ? 'bg-zinc-800 text-white hover:bg-emerald-500 hover:text-zinc-950 active:scale-95 shadow-sm'
-                  : 'text-zinc-600 cursor-not-allowed opacity-40'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-white hover:bg-emerald-500 hover:text-zinc-950 active:scale-95 shadow-sm'
+                  : 'text-zinc-400 dark:text-zinc-600 cursor-not-allowed opacity-40'
               }`}
             >
               <ChevronRight size={18} />
@@ -360,7 +360,7 @@ export const NuevosLanzamientosCircuit: React.FC = () => {
         {filteredItems.map((item) => (
           <article
             key={item.id}
-            className="group relative flex-shrink-0 w-[320px] sm:w-[480px] md:w-[540px] lg:w-[580px] h-[370px] sm:h-[410px] rounded-3xl overflow-hidden border border-white/10 bg-zinc-900 shadow-xl transition-all duration-300 hover:border-emerald-500/60 hover:shadow-2xl hover:shadow-emerald-500/10 snap-start flex flex-col justify-end"
+            className="group relative flex-shrink-0 w-[320px] sm:w-[480px] md:w-[540px] lg:w-[580px] h-[370px] sm:h-[410px] rounded-3xl overflow-hidden border border-zinc-200/90 dark:border-white/10 bg-zinc-900 shadow-md shadow-zinc-900/10 dark:shadow-xl transition-all duration-300 hover:border-emerald-500/60 hover:shadow-2xl hover:shadow-emerald-500/10 snap-start flex flex-col justify-end"
           >
             {/* Imagen cinematográfica de fondo de alta definición */}
             <img
@@ -432,8 +432,9 @@ export const NuevosLanzamientosCircuit: React.FC = () => {
                     </span>
                   )}
                   {item.extraMeta?.palaAsociada && (
-                    <span className="hidden sm:inline-block text-[11px] text-zinc-300 bg-white/10 px-2 py-0.5 rounded-md">
-                      🎾 {item.extraMeta.palaAsociada}
+                    <span className="hidden sm:inline-flex items-center text-[11px] text-zinc-300 bg-white/10 px-2 py-0.5 rounded-md">
+                      <Award size={12} className="inline mr-1 text-emerald-400" />
+                      <span>{item.extraMeta.palaAsociada}</span>
                     </span>
                   )}
                 </div>

@@ -25,11 +25,23 @@ public static class PadelfulEndpoints
             .WithName("SyncPadelful")
             .WithSummary("Sincroniza e importa el catálogo técnico de Padelful a la base de datos de Palantica");
 
+        group.MapGet("/jugadores-pro", getJugadoresPro)
+            .WithName("GetPadelfulJugadoresPro")
+            .WithSummary("Consulta exclusivamente desde la API de Padelful las palas de jugadores profesionales sin tocar la base de datos");
+
         group.MapGet("/quota", () => Results.Ok(PadelfulService.GetQuotaStatus()))
             .WithName("GetPadelfulQuota")
             .WithSummary("Consulta el estado de la cuota de llamadas y la protección anti-cobro");
 
         return app;
+    }
+
+    private static async Task<IResult> getJugadoresPro(
+        [FromServices] PadelfulService service,
+        CancellationToken cancellationToken)
+    {
+        var rackets = await service.GetJugadoresProRacketsAsync(cancellationToken);
+        return Results.Ok(rackets);
     }
 
     private static async Task<IResult> getPadelfulRackets(

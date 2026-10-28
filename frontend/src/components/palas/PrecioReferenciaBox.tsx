@@ -38,13 +38,13 @@ export const PrecioReferenciaBox: React.FC<PrecioReferenciaBoxProps> = ({
     <div
       style={{
         padding: '18px 20px',
-        background: 'var(--bg-input)',
+        background: 'var(--bg-card-subtle)',
         borderRadius: 'var(--radius-md)',
         border: '1px solid var(--border-card)',
         display: 'flex',
         flexDirection: 'column',
         gap: '10px',
-        boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.15)',
+        boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.06)',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -88,7 +88,7 @@ export const PrecioReferenciaBox: React.FC<PrecioReferenciaBoxProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderTop: '1px solid var(--border-subtle)',
+          borderTop: '1px solid var(--border-card)',
           paddingTop: '10px',
           gap: '8px',
           flexWrap: 'wrap',

@@ -35,11 +35,13 @@ public sealed record PaleteroItemResponse(
 );
 
 /// <summary>
-/// Contrato de paletero agrupado por sus cuatro compartimentos.
+/// Contrato de paletero agrupado por sus compartimentos.
 /// </summary>
 public sealed record MiPaleteroGroupedResponse(
     IReadOnlyList<PaleteroItemResponse> UsandoActualmente,
-    IReadOnlyList<PaleteroItemResponse> EnElPaletero,
+    IReadOnlyList<PaleteroItemResponse> PalasQueMeGustaron,
+    IReadOnlyList<PaleteroItemResponse> PalasQueNoMeGustaron,
+    IReadOnlyList<PaleteroItemResponse> PalasQueQuiero,
     IReadOnlyList<PaleteroItemResponse> PalasQueTuve,
-    IReadOnlyList<PaleteroItemResponse> PalasQueQuiero
+    IReadOnlyList<PaleteroItemResponse> EnElPaletero
 );

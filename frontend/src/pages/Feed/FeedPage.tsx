@@ -68,23 +68,15 @@ export const FeedPage: React.FC = () => {
             },
             likesCount: item.likesCount || 12,
             userHasLiked: false,
-            comentariosCount: 3,
-            comentarios: [
-              {
-                id: 'c1',
-                publicacionId: String(item.id),
-                autor: { id: 99, nombre: 'Gonzalo P.' },
-                fecha: 'Hace 1h',
-                texto: '¿Qué tal se siente el balance en la volea rápida?',
-              },
-            ],
+            comentariosCount: item.likesCount ? Math.round(item.likesCount * 0.4) : 0,
+            comentarios: [],
           }));
           setPosts(mapped);
         } else {
-          setPosts(initialMockPosts);
+          setPosts([]);
         }
       } catch {
-        setPosts(initialMockPosts);
+        setPosts([]);
       }
     }
 
@@ -220,18 +212,18 @@ export const FeedPage: React.FC = () => {
   return (
     <div className="w-full max-w-4xl mx-auto flex flex-col gap-6 animate-fade-in pb-16">
       {/* Cabecera del Feed */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-white/10 pb-4 transition-colors">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white m-0">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[var(--text-primary)] m-0">
             Feed de la Comunidad
           </h1>
-          <p className="text-zinc-400 text-xs sm:text-sm mt-0.5">
+          <p className="text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm mt-0.5">
             Muro social de jugadores registrados. Consejos, fotos en pista y experiencias de juego.
           </p>
         </div>
 
         {/* Filtros de Feed */}
-        <div className="flex items-center gap-1 bg-zinc-900/80 p-1 rounded-2xl border border-white/10 self-start sm:self-auto">
+        <div className="flex items-center gap-1 bg-[var(--bg-card-subtle)] p-1 rounded-2xl border border-zinc-200 dark:border-white/10 self-start sm:self-auto transition-colors">
           {(
             [
               { id: 'recientes', label: 'Recientes', icon: Clock },
@@ -249,7 +241,7 @@ export const FeedPage: React.FC = () => {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                   isSel
                     ? 'bg-emerald-500 text-zinc-950 font-black shadow-sm'
-                    : 'text-zinc-400 hover:text-white'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
                 }`}
               >
                 <Icon size={13} />
@@ -261,7 +253,7 @@ export const FeedPage: React.FC = () => {
       </div>
 
       {/* Caja de Creación de Publicación */}
-      <div className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-white/10 shadow-xl flex flex-col gap-3">
+      <div className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-zinc-200 dark:border-white/10 shadow-md shadow-zinc-900/5 dark:shadow-xl flex flex-col gap-3 transition-colors">
         {isAuthenticated ? (
           <form onSubmit={handleCrearPost} className="flex flex-col gap-3">
             <div className="flex gap-3 items-start">
@@ -281,29 +273,29 @@ export const FeedPage: React.FC = () => {
                 onChange={(e) => setNuevoTexto(e.target.value)}
                 placeholder="¿Qué probaste en tu último partido? Comparte sensaciones o equipamiento..."
                 rows={3}
-                className="w-full bg-zinc-900/90 border border-white/10 rounded-2xl p-3 text-sm text-white placeholder-zinc-500 outline-none focus:border-emerald-500 resize-none font-medium"
+                className="w-full bg-[var(--bg-input)] border border-zinc-300 dark:border-white/10 rounded-2xl p-3 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none focus:border-emerald-500 resize-none font-medium transition-colors"
               />
             </div>
 
             {/* Opciones adjuntas: Imagen y Etiquetar Pala */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/5">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-zinc-200 dark:border-white/5">
               <div className="flex items-center gap-2">
                 <input
                   type="url"
                   value={nuevaImagen}
                   onChange={(e) => setNuevaImagen(e.target.value)}
                   placeholder="URL de foto en pista (opcional)..."
-                  className="h-8 px-3 rounded-xl bg-zinc-900 border border-white/10 text-xs text-white placeholder-zinc-500 outline-none w-48 sm:w-64"
+                  className="h-8 px-3 rounded-xl bg-[var(--bg-input)] border border-zinc-300 dark:border-white/10 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none w-48 sm:w-64 transition-colors"
                 />
 
                 <select
                   value={palaSeleccionadaId}
                   onChange={(e) => setPalaSeleccionadaId(e.target.value ? Number(e.target.value) : '')}
-                  className="h-8 px-3 rounded-xl bg-zinc-900 border border-white/10 text-xs text-white outline-none cursor-pointer max-w-[180px] truncate"
+                  className="h-8 px-3 rounded-xl bg-[var(--bg-input)] border border-zinc-300 dark:border-white/10 text-xs text-[var(--text-primary)] outline-none cursor-pointer max-w-[180px] truncate transition-colors"
                 >
-                  <option value="">Etiquetar pala...</option>
+                  <option value="" className="bg-[var(--bg-surface)] text-[var(--text-primary)]">Etiquetar pala...</option>
                   {palas.map((p) => (
-                    <option key={p.id} value={p.id}>
+                    <option key={p.id} value={p.id} className="bg-[var(--bg-surface)] text-[var(--text-primary)]">
                       {p.marcaNombre} {p.modelo}
                     </option>
                   ))}
@@ -321,14 +313,14 @@ export const FeedPage: React.FC = () => {
             </div>
           </form>
         ) : (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-3 bg-zinc-900/50 rounded-2xl border border-dashed border-white/10">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-[var(--bg-card-subtle)] rounded-2xl border border-dashed border-zinc-300 dark:border-white/10 transition-colors">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
                 <Lock size={18} />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-white m-0">Únete a la comunidad de Palantica</h4>
-                <p className="text-xs text-zinc-400 mt-0.5">
+                <h4 className="text-sm font-bold text-[var(--text-primary)] m-0">Únete a la comunidad de Palantica</h4>
+                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
                   Inicia sesión para publicar tus reviews, fotos de pala y debatir con otros jugadores.
                 </p>
               </div>
@@ -349,7 +341,7 @@ export const FeedPage: React.FC = () => {
           <article
             key={post.id}
             id={`post-${post.id}`}
-            className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-white/10 shadow-lg flex flex-col gap-4"
+            className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-zinc-200 dark:border-white/10 shadow-md shadow-zinc-900/5 dark:shadow-lg flex flex-col gap-4 transition-colors"
           >
             {/* Cabecera del Post: Autor, Nivel y Fecha */}
             <div className="flex items-center justify-between">
@@ -358,7 +350,7 @@ export const FeedPage: React.FC = () => {
                   <img
                     src={post.autor.avatarUrl}
                     alt={post.autor.nombre}
-                    className="w-10 h-10 rounded-full object-cover border border-white/10"
+                    className="w-10 h-10 rounded-full object-cover border border-zinc-200 dark:border-white/10"
                   />
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-black text-sm">
@@ -367,16 +359,16 @@ export const FeedPage: React.FC = () => {
                 )}
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-extrabold text-white text-sm">
+                    <span className="font-extrabold text-[var(--text-primary)] text-sm">
                       {post.autor.nombre}
                     </span>
                     {post.autor.nivelJuego && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-800 text-zinc-300 border border-white/10">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--bg-card-subtle)] text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-white/10">
                         {post.autor.nivelJuego}
                       </span>
                     )}
                   </div>
-                  <span className="text-xs text-zinc-400 font-medium">
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
                     {post.fechaPublicacion}
                   </span>
                 </div>
@@ -384,7 +376,7 @@ export const FeedPage: React.FC = () => {
             </div>
 
             {/* Texto de la publicación */}
-            <p className="text-sm sm:text-base text-zinc-200 leading-relaxed font-normal whitespace-pre-line">
+            <p className="text-sm sm:text-base text-zinc-800 dark:text-zinc-200 leading-relaxed font-normal whitespace-pre-line">
               {post.texto}
             </p>
 
@@ -392,13 +384,13 @@ export const FeedPage: React.FC = () => {
             {post.paletaEtiquetada && (
               <Link
                 to={`/paletas/${post.paletaEtiquetada.id}`}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-zinc-900 border border-emerald-500/30 text-xs font-bold text-emerald-400 hover:bg-zinc-800 transition-colors self-start"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-[var(--bg-card-subtle)] border border-emerald-500/30 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors self-start"
               >
                 <Tag size={13} />
                 <span>
                   {post.paletaEtiquetada.marca} {post.paletaEtiquetada.modelo}
                 </span>
-                <span className="text-[10px] text-zinc-400 font-normal">
+                <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-normal">
                   • Ver ficha técnica
                 </span>
               </Link>
@@ -406,7 +398,7 @@ export const FeedPage: React.FC = () => {
 
             {/* Imágenes opcionales */}
             {post.imagenes && post.imagenes.length > 0 && (
-              <div className="w-full rounded-2xl overflow-hidden border border-white/10 bg-zinc-950 max-h-96">
+              <div className="w-full rounded-2xl overflow-hidden border border-zinc-200 dark:border-white/10 bg-zinc-950 max-h-96">
                 <img
                   src={post.imagenes[0]}
                   alt="Foto en pista"
@@ -416,20 +408,20 @@ export const FeedPage: React.FC = () => {
             )}
 
             {/* Fila de interacciones: Like, Comentarios, Compartir */}
-            <div className="flex items-center justify-between pt-3 border-t border-white/5 text-xs text-zinc-400">
+            <div className="flex items-center justify-between pt-3 border-t border-zinc-200 dark:border-white/5 text-xs text-zinc-500 dark:text-zinc-400">
               <div className="flex items-center gap-4">
                 <button
                   type="button"
                   onClick={() => handleToggleLike(post.id)}
                   className={`flex items-center gap-1.5 font-bold transition-colors ${
                     post.userHasLiked
-                      ? 'text-rose-400'
-                      : 'hover:text-white text-zinc-400'
+                      ? 'text-rose-500'
+                      : 'hover:text-zinc-950 dark:hover:text-white text-zinc-500 dark:text-zinc-400'
                   }`}
                 >
                   <Heart
                     size={16}
-                    className={post.userHasLiked ? 'fill-rose-400 text-rose-400' : ''}
+                    className={post.userHasLiked ? 'fill-rose-500 text-rose-500' : ''}
                   />
                   <span>{post.likesCount}</span>
                 </button>
@@ -442,9 +434,9 @@ export const FeedPage: React.FC = () => {
                       [post.id]: !prev[post.id],
                     }))
                   }
-                  className="flex items-center gap-1.5 hover:text-white font-bold transition-colors"
+                  className="flex items-center gap-1.5 hover:text-zinc-950 dark:hover:text-white font-bold transition-colors"
                 >
-                  <MessageCircle size={16} className="text-cyan-400" />
+                  <MessageCircle size={16} className="text-cyan-500" />
                   <span>{post.comentariosCount} comentarios</span>
                 </button>
               </div>
@@ -452,7 +444,7 @@ export const FeedPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleCompartir(post.id)}
-                className="flex items-center gap-1 hover:text-white transition-colors"
+                className="flex items-center gap-1 hover:text-zinc-950 dark:hover:text-white transition-colors"
               >
                 <Share2 size={15} />
                 <span>{copiedId === post.id ? '¡Enlace copiado!' : 'Compartir'}</span>
@@ -461,22 +453,22 @@ export const FeedPage: React.FC = () => {
 
             {/* Caja de Comentarios desplegable */}
             {expandedComments[post.id] && (
-              <div className="flex flex-col gap-3 pt-3 border-t border-white/10 animate-fade-in">
+              <div className="flex flex-col gap-3 pt-3 border-t border-zinc-200 dark:border-white/10 animate-fade-in">
                 {/* Lista de comentarios */}
                 <div className="flex flex-col gap-2.5">
                   {post.comentarios && post.comentarios.length > 0 ? (
                     post.comentarios.map((c) => (
                       <div
                         key={c.id}
-                        className="p-3 rounded-2xl bg-zinc-900/60 border border-white/5 flex flex-col gap-1 text-xs"
+                        className="p-3 rounded-2xl bg-[var(--bg-card-subtle)] border border-zinc-200/80 dark:border-white/5 flex flex-col gap-1 text-xs"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-white">
+                          <span className="font-bold text-[var(--text-primary)]">
                             {c.autor.nombre}
                           </span>
-                          <span className="text-[10px] text-zinc-400">{c.fecha}</span>
+                          <span className="text-[10px] text-zinc-400 dark:text-zinc-500">{c.fecha}</span>
                         </div>
-                        <p className="text-zinc-300 font-normal m-0">{c.texto}</p>
+                        <p className="text-zinc-700 dark:text-zinc-300 font-normal m-0">{c.texto}</p>
                       </div>
                     ))
                   ) : (
@@ -508,7 +500,7 @@ export const FeedPage: React.FC = () => {
                         ? 'Escribe una respuesta...'
                         : 'Inicia sesión para comentar...'
                     }
-                    className="flex-1 h-9 px-3.5 rounded-xl bg-zinc-900 border border-white/10 text-xs text-white placeholder-zinc-500 outline-none focus:border-emerald-500"
+                    className="flex-1 h-9 px-3.5 rounded-xl bg-[var(--bg-input)] border border-zinc-300 dark:border-white/10 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none focus:border-emerald-500 transition-colors"
                   />
                   <button
                     type="button"
@@ -568,69 +560,4 @@ export const FeedPage: React.FC = () => {
   );
 };
 
-// Fallback inicial enriquecido
-const initialMockPosts: Publicacion[] = [
-  {
-    id: 'f1',
-    autor: {
-      id: 101,
-      nombre: 'Luciano D.',
-      nivelJuego: 'Avanzado',
-      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
-    },
-    fechaPublicacion: 'Hace 3 horas',
-    texto:
-      'Hoy probé la Vertex 04 2026 con 26 grados de calor en cancha descubierta. La goma MultiEVA no se ablanda tanto como en versiones anteriores y mantiene un control quirúrgico en la bajada de pared.',
-    imagenes: [
-      'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=800&q=80',
-    ],
-    paletaEtiquetada: {
-      id: 1,
-      modelo: 'Vertex 04 2026',
-      marca: 'Bullpadel',
-    },
-    likesCount: 38,
-    userHasLiked: false,
-    comentariosCount: 5,
-    comentarios: [
-      {
-        id: 'c1',
-        publicacionId: 'f1',
-        autor: { id: 102, nombre: 'Javier M.' },
-        fecha: 'Hace 2 horas',
-        texto: '¿La sentiste muy pesada en la muñeca con ese balance?',
-      },
-      {
-        id: 'c2',
-        publicacionId: 'f1',
-        autor: { id: 101, nombre: 'Luciano D.' },
-        fecha: 'Hace 1 hora',
-        texto: 'Para nada, viene con el protector CustomWeight y la dejé en 368g exactos.',
-      },
-    ],
-  },
-  {
-    id: 'f2',
-    autor: {
-      id: 103,
-      nombre: 'Mariana K.',
-      nivelJuego: 'Competición',
-      avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
-    },
-    fechaPublicacion: 'Hace 6 horas',
-    texto:
-      'Pasé de formato diamante a lágrima con la Nox AT10 18K Alum de Tapia. El punto dulce es absurdamente amplio, perdonando casi cualquier contacto descentrado en defensa de fondo.',
-    imagenes: [
-      'https://images.unsplash.com/photo-1599586120429-48281b6f0ece?auto=format&fit=crop&w=800&q=80',
-    ],
-    paletaEtiquetada: {
-      id: 2,
-      modelo: 'AT10 Luxury Genius 18K',
-      marca: 'Nox',
-    },
-    likesCount: 65,
-    userHasLiked: false,
-    comentariosCount: 8,
-    comentarios: [],
-  },
-];
+

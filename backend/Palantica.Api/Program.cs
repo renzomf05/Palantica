@@ -14,6 +14,8 @@ using Palantica.Api.Features.Resenas;
 using Palantica.Api.Features.Shopify;
 using Palantica.Api.Features.Padelful;
 using Palantica.Api.Features.Votaciones;
+using Palantica.Api.Features.Reportes;
+using Palantica.Api.Features.Admin;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +28,7 @@ builder.Services.AddSingleton<SupabaseRestClient>();
 // Feature Repositories y Servicios de Dominio
 builder.Services.AddScoped<AuthRepository>();
 builder.Services.AddSingleton<TokenService>();
+builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddScoped<MarcaRepository>();
 builder.Services.AddScoped<PalaRepository>();
 builder.Services.AddSingleton<PalaSimilarityEngine>();
@@ -36,6 +39,8 @@ builder.Services.AddScoped<ResenaRepository>();
 builder.Services.AddScoped<VotacionRepository>();
 builder.Services.AddScoped<PaleteroRepository>();
 builder.Services.AddScoped<PadelgramRepository>();
+builder.Services.AddScoped<ReporteRepository>();
+builder.Services.AddScoped<AdminRepository>();
 
 // ==========================================
 // 2. Manejo Global de Excepciones (RFC 7807)
@@ -74,7 +79,10 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
+});
 
 // ==========================================
 // 4. Configuración de CORS para Frontend Desacoplado
@@ -289,5 +297,7 @@ app.MapPaleteroEndpoints();
 app.MapPadelgramEndpoints();
 app.MapShopifyEndpoints();
 app.MapPadelfulEndpoints();
+app.MapReporteEndpoints();
+app.MapAdminEndpoints();
 
 app.Run();

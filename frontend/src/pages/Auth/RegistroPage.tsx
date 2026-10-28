@@ -21,14 +21,16 @@ export const RegistroPage: React.FC = () => {
     setLoading(true);
 
     try {
-      await registrar({
+      const res = await registrar({
         nombre,
         email,
         password,
         nivelJuego,
         ladoPistaPreferido: ladoPista,
       });
-      navigate('/perfil');
+      navigate(`/verificar-email?email=${encodeURIComponent(email)}`, {
+        state: { devCode: res.devCode, message: res.message }
+      });
     } catch (err: any) {
       setErrorMsg(err.message || 'Error al registrar la cuenta. Verifique los datos.');
     } finally {
@@ -65,16 +67,7 @@ export const RegistroPage: React.FC = () => {
         </div>
 
         {errorMsg && (
-          <div
-            style={{
-              padding: '10px 14px',
-              background: 'rgba(224, 122, 95, 0.15)',
-              border: '1px solid var(--color-accent-terracotta)',
-              borderRadius: 'var(--radius-sm)',
-              color: '#FFF',
-              fontSize: '0.85rem',
-            }}
-          >
+          <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-600 dark:text-rose-300 text-xs font-semibold leading-relaxed">
             {errorMsg}
           </div>
         )}

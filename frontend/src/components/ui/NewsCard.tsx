@@ -12,24 +12,38 @@ export const NewsCard: React.FC<NewsCardProps> = ({ item, className = '' }) => {
   return (
     <Link
       to={item.linkTo}
-      className={`group relative flex-shrink-0 w-[260px] sm:w-[280px] h-[375px] sm:h-[390px] rounded-3xl overflow-hidden block border border-white/10 shadow-lg bg-zinc-900 transition-all duration-300 hover:border-emerald-500/50 hover:shadow-emerald-500/10 hover:shadow-2xl hover:-translate-y-1 ${className}`}
+      className={`group relative flex-shrink-0 w-[260px] sm:w-[280px] h-[375px] sm:h-[390px] rounded-3xl overflow-hidden block border border-zinc-200/90 dark:border-white/10 shadow-md shadow-zinc-900/10 dark:shadow-lg bg-zinc-900 transition-all duration-300 hover:border-emerald-500/50 hover:shadow-emerald-500/10 hover:shadow-2xl hover:-translate-y-1 ${className}`}
     >
-      {/* Imagen a card completo sin oscurecer */}
-      <img
-        src={item.imagenUrl}
-        alt={item.titulo}
-        loading="lazy"
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-        onError={(e) => {
-          // Fallback visual si falla la URL de imagen
-          (e.currentTarget as HTMLImageElement).src =
-            'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=600&q=80';
-        }}
-      />
+      {/* Imagen de fondo / producto adaptada */}
+      {item.imagenUrl && (item.imagenUrl.includes('/rackets/') || item.imagenUrl.endsWith('.webp') || item.imagenUrl.endsWith('.png')) ? (
+        <div className="absolute inset-0 bg-gradient-to-b from-zinc-800/80 via-zinc-900/90 to-zinc-950 flex items-center justify-center p-5 pb-24">
+          <img
+            src={item.imagenUrl}
+            alt={item.titulo}
+            loading="lazy"
+            className="w-full h-full object-contain filter drop-shadow-[0_15px_22px_rgba(0,0,0,0.85)] transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-2"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src =
+                'https://www.padelful.com/images/rackets/variants/nox-at10-luxury-genius-18k-alum-2027-agustin-tapia-512.webp';
+            }}
+          />
+        </div>
+      ) : (
+        <img
+          src={item.imagenUrl}
+          alt={item.titulo}
+          loading="lazy"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src =
+              'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=600&q=80';
+          }}
+        />
+      )}
 
-      {/* Chip de categoría: No aparece directamente al cargar, solo visible sutilmente en hover */}
-      {item.etiqueta && (
-        <div className="absolute top-3.5 left-3.5 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+      {/* Chip de categoría */}
+      {Boolean(item.etiqueta?.trim()) && (
+        <div className="absolute top-3.5 left-3.5 z-20">
           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/85 backdrop-blur-md text-emerald-400 border border-emerald-400/40 shadow-sm">
             {item.etiqueta}
           </span>

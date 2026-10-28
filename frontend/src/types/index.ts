@@ -13,7 +13,7 @@ export interface Marca {
   paisOrigen: string;
   sitioWeb?: string | null;
   logoUrl?: string | null;
-  totalPalas: number;
+  totalPalas?: number;
 }
 
 export interface Pala {
@@ -220,9 +220,11 @@ export interface VotacionResumen {
 
 export type CategoriaPaletero =
   | 'Usando actualmente'
-  | 'En el paletero'
+  | 'Palas que me gustaron'
+  | 'Palas que no me gustaron'
+  | 'Palas que quiero'
   | 'Palas que tuve'
-  | 'Palas que quiero';
+  | 'En el paletero';
 
 export interface PaleteroItem {
   id: number;
@@ -242,9 +244,11 @@ export interface PaleteroItem {
 
 export interface MiPaleteroGrouped {
   usandoActualmente: PaleteroItem[];
-  enElPaletero: PaleteroItem[];
-  palasQueTuve: PaleteroItem[];
+  palasQueMeGustaron: PaleteroItem[];
+  palasQueNoMeGustaron: PaleteroItem[];
   palasQueQuiero: PaleteroItem[];
+  palasQueTuve: PaleteroItem[];
+  enElPaletero: PaleteroItem[];
 }
 
 export interface PadelgramPost {
@@ -284,6 +288,8 @@ export interface Usuario {
   nivelJuego: string;
   ladoPistaPreferido: string;
   avatarUrl?: string | null;
+  emailVerificado?: boolean;
+  twoFactorEnabled?: boolean;
 }
 
 export interface PerfilUsuario extends Usuario {
@@ -306,6 +312,24 @@ export interface AuthResponse {
   nivelJuego: string;
   ladoPistaPreferido: string;
   avatarUrl?: string | null;
+}
+
+export interface RegistroPendienteResponse {
+  message: string;
+  email: string;
+  requiresVerification: boolean;
+  devCode?: string;
+}
+
+export interface TwoFactorRequeridoResponse {
+  requires2FA: boolean;
+  tempToken: string;
+  email: string;
+}
+
+export interface TwoFactorSetupResponse {
+  secret: string;
+  qrUri: string;
 }
 
 export interface PagedResponse<T> {
@@ -443,5 +467,56 @@ export interface FiltrosDistintivos {
   precioMin?: number;
   precioMax?: number;
   orderBy?: 'novedad' | 'puntuacion' | 'populares' | 'precio_asc' | 'precio_desc';
+}
+
+export interface ProPlayerRacket {
+  id: string;
+  jugador: string;
+  rankingFip?: string;
+  posicion?: 'Revés' | 'Drive';
+  genero?: 'Masculino' | 'Femenino';
+  isTop5?: boolean;
+  marca: string;
+  modelo: string;
+  subtitulo: string;
+  forma: string;
+  slug: string;
+  imagenUrl: string;
+  rating: number;
+  precio?: number;
+}
+
+// ==========================================
+// Tipos para Reportes de Usuarios y Panel Admin
+// ==========================================
+export interface Reporte {
+  id: number;
+  usuarioId: number;
+  usuarioNombre: string;
+  usuarioEmail: string;
+  asunto: string;
+  mensaje: string;
+  estado: 'Pendiente' | 'EnRevision' | 'Resuelto' | string;
+  fechaCreacion: string;
+  fechaResolucion?: string | null;
+}
+
+export interface AdminUsuario {
+  id: number;
+  nombre: string;
+  email: string;
+  rol: 'Usuario' | 'Admin' | string;
+  nivelJuego: string;
+  ladoPistaPreferido: string;
+  avatarUrl?: string | null;
+  fechaRegistro: string;
+}
+
+export interface AdminEstadisticas {
+  totalUsuarios: number;
+  totalReportes: number;
+  reportesPendientes: number;
+  totalPalas: number;
+  totalResenas: number;
 }
 

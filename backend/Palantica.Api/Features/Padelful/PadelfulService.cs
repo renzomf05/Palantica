@@ -214,10 +214,10 @@ public sealed class PadelfulService
             logger.LogDebug("Consulta remota Supabase palas: usando catálogo local ({Msg}).", ex.Message);
         }
 
-        // Si la base de datos remota no devolvió items, usamos el catálogo factual indexado (1,722 palas)
-        if (dbResults.Count == 0)
+        // Si la base de datos remota devolvió menos palas de las indexadas (Supabase tiene 8), complementamos siempre con el catálogo indexado de 1.722 palas
+        if (dbResults.Count < 1700)
         {
-            var localMatches = filterCuratedCatalog(filter, limit + offset);
+            var localMatches = filterCuratedCatalog(filter, Math.Max(limit + offset, 2500));
             dbResults.AddRange(localMatches);
         }
 
@@ -324,9 +324,8 @@ public sealed class PadelfulService
         foreach (var p in dbResults)
         {
             var sKey = p.Slug.Trim().ToLowerInvariant();
-            var tKey = $"{p.Marca}_{p.Modelo}".Trim().ToLowerInvariant();
 
-            if (seenSlugs.Add(sKey) && seenTitles.Add(tKey))
+            if (seenSlugs.Add(sKey))
             {
                 deduplicatedResults.Add(p);
             }
@@ -336,9 +335,8 @@ public sealed class PadelfulService
         foreach (var p in newExternalRackets)
         {
             var sKey = p.Slug.Trim().ToLowerInvariant();
-            var tKey = $"{p.Marca}_{p.Modelo}".Trim().ToLowerInvariant();
 
-            if (seenSlugs.Add(sKey) && seenTitles.Add(tKey))
+            if (seenSlugs.Add(sKey))
             {
                 deduplicatedResults.Add(p);
             }
@@ -453,6 +451,21 @@ public sealed class PadelfulService
             PalasSincronizadas: importadasList.AsReadOnly(),
             Mensaje: $"Sincronización completada: {importados} palas importadas con métricas completas e imágenes HD ({omitidos} omitidas por existir)."
         );
+    }
+
+    /// <summary>
+    /// Obtiene exclusivamente las paletas de jugadores profesionales desde la API/catálogo curado de Padelful,
+    /// sin consultar la base de datos SQL.
+    /// </summary>
+    public Task<IReadOnlyList<PadelfulPalaPreview>> GetJugadoresProRacketsAsync(CancellationToken cancellationToken = default)
+    {
+        var catalog = getCuratedPadelfulCatalog();
+        var proRackets = catalog
+            .Where(p => !string.IsNullOrWhiteSpace(p.JugadorPro))
+            .DistinctBy(p => p.Slug.ToLowerInvariant().Trim())
+            .ToList();
+
+        return Task.FromResult<IReadOnlyList<PadelfulPalaPreview>>(proRackets.AsReadOnly());
     }
 
     /// <summary>
@@ -682,6 +695,8 @@ public sealed class PadelfulService
                 Path.Combine(Directory.GetCurrentDirectory(), "Features", "Padelful", "padelful_rackets.json"),
                 Path.Combine(Directory.GetCurrentDirectory(), "backend", "Palantica.Api", "Features", "Padelful", "padelful_rackets.json"),
                 Path.Combine(Directory.GetCurrentDirectory(), "Palantica.Api", "Features", "Padelful", "padelful_rackets.json"),
+                Path.Combine(Directory.GetCurrentDirectory(), "..", "frontend", "public", "padelful_rackets.json"),
+                Path.Combine(Directory.GetCurrentDirectory(), "frontend", "public", "padelful_rackets.json"),
                 "Features/Padelful/padelful_rackets.json",
                 "backend/Palantica.Api/Features/Padelful/padelful_rackets.json"
             };
@@ -698,16 +713,18 @@ public sealed class PadelfulService
                         {
                             var deduplicated = list.DistinctBy(p => p.Slug.ToLowerInvariant().Trim()).ToList();
                             _loadedCatalog = deduplicated.AsReadOnly();
+                            Console.WriteLine($"[CATALOG] Éxito: {_loadedCatalog.Count} palas cargadas desde {path}");
                             return _loadedCatalog;
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // Continuar con el siguiente path o fallback
+                        Console.WriteLine($"[CATALOG] Error al deserializar {path}: {ex.Message}");
                     }
                 }
             }
 
+            Console.WriteLine("[CATALOG] Aviso: Se cargará el catálogo fallback hardcodeado.");
             _loadedCatalog = getHardcodedFallbackCatalog();
             return _loadedCatalog;
         }
@@ -1363,6 +1380,60 @@ public sealed class PadelfulService
                 JugadorPro: "Juan Tello",
                 AnoLanzamiento: 2024,
                 FuenteOriginal: "https://www.padelful.com/en/rackets/bullpadel-vertex-04-2024"
+            ),
+
+            // 25. Head Extreme Pro 2024 Arturo Coello
+            new(
+                Slug: "head-extreme-pro-2024",
+                Marca: "Head",
+                Modelo: "Extreme Pro 2024 Arturo Coello",
+                Forma: "Diamante",
+                BalanceMm: 275,
+                BalanceNivel: "Alto",
+                MaterialNucleo: "Power Foam",
+                MaterialCaras: "Carbono Híbrido Auxetic",
+                DurezaNivel: "Dura",
+                DurezaScore: 8.8f,
+                PotenciaScore: 10.0f,
+                ControlScore: 8.8f,
+                SalidaBolaScore: 8.4f,
+                ManiobrabilidadScore: 8.3f,
+                PuntoDulceScore: 8.5f,
+                PuntuacionGeneral: 9.6f,
+                Precio: 320.00m,
+                Moneda: "EUR",
+                ImagenUrl: "https://www.padelful.com/images/rackets/variants/head-extreme-pro-2024-512.webp",
+                Descripcion: "La pala de Arturo Coello, número 1 del ranking FIP. Formato diamante de ataque extremo con tecnología Auxetic 2.0 y núcleo Power Foam para una pegada demoledora.",
+                JugadorPro: "Arturo Coello",
+                AnoLanzamiento: 2024,
+                FuenteOriginal: "https://www.padelful.com/en/rackets/head-extreme-pro-2024"
+            ),
+
+            // 26. Head Speed Pro X 2023 Ari Sánchez & Paula Josemaría
+            new(
+                Slug: "head-speed-pro-x-2023",
+                Marca: "Head",
+                Modelo: "Speed Pro X 2023",
+                Forma: "Lagrima",
+                BalanceMm: 265,
+                BalanceNivel: "Medio",
+                MaterialNucleo: "Power Foam Confort",
+                MaterialCaras: "Carbono 12K",
+                DurezaNivel: "Media",
+                DurezaScore: 7.2f,
+                PotenciaScore: 9.1f,
+                ControlScore: 9.6f,
+                SalidaBolaScore: 8.8f,
+                ManiobrabilidadScore: 9.2f,
+                PuntoDulceScore: 9.4f,
+                PuntuacionGeneral: 9.4f,
+                Precio: 290.00m,
+                Moneda: "EUR",
+                ImagenUrl: "https://www.padelful.com/images/rackets/variants/head-speed-pro-x-2023-512.webp",
+                Descripcion: "Empuñada por las números 1 del pádel femenino mundial. Combinación magistral de aceleración, confort de tacto y control en cada fase del punto.",
+                JugadorPro: "Ariana Sánchez",
+                AnoLanzamiento: 2024,
+                FuenteOriginal: "https://www.padelful.com/en/rackets/head-speed-pro-x-2023"
             )
         }.AsReadOnly();
     }
