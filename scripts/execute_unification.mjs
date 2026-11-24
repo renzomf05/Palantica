@@ -2,7 +2,8 @@ import fs from 'fs';
 import path from 'path';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://detxepmluillmdknfanm.supabase.co';
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '***REMOVED***';
+const SERVICE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!SERVICE_KEY) throw new Error('Definir SUPABASE_SECRET_KEY en el entorno');
 
 const headers = {
   apikey: SERVICE_KEY,

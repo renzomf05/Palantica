@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: palantica
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ***REMOVED***
+      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD:?Definir LOCAL_DB_PASSWORD en .env}
     ports:
       - "5433:5432"
     volumes:
@@ -28,8 +28,8 @@ services:
         condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__Supabase=Host=palantica-db;Port=5432;Database=palantica;Username=postgres;Password=***REMOVED***;
-      - Jwt__Key=***REMOVED***
+      - ConnectionStrings__Supabase=Host=palantica-db;Port=5432;Database=palantica;Username=postgres;Password=${LOCAL_DB_PASSWORD};
+      - Jwt__Key=${JWT_SECRET:?Definir JWT_SECRET en .env}
       - Jwt__Issuer=Palantica.Api
       - Jwt__Audience=Palantica.Client
       - Padelful__ApiKey=***REMOVED***

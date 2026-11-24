@@ -31,7 +31,7 @@ public sealed class TokenService
 
         var secretKey = configuration["Jwt:Key"]
                         ?? configuration["JWT_SECRET"]
-                        ?? "***REMOVED***";
+                        ?? throw new InvalidOperationException("Falta la configuración Jwt:Key / JWT_SECRET.");
 
         var issuer = configuration["Jwt:Issuer"] ?? "Palantica.Api";
         var audience = configuration["Jwt:Audience"] ?? "Palantica.Client";
@@ -73,7 +73,7 @@ public sealed class TokenService
 
         var secretKey = configuration["Jwt:Key"]
                         ?? configuration["JWT_SECRET"]
-                        ?? "***REMOVED***";
+                        ?? throw new InvalidOperationException("Falta la configuración Jwt:Key / JWT_SECRET.");
 
         var issuer = configuration["Jwt:Issuer"] ?? "Palantica.Api";
         var audience = configuration["Jwt:Audience"] ?? "Palantica.Client";
@@ -112,7 +112,7 @@ public sealed class TokenService
 
         var secretKey = configuration["Jwt:Key"]
                         ?? configuration["JWT_SECRET"]
-                        ?? "***REMOVED***";
+                        ?? throw new InvalidOperationException("Falta la configuración Jwt:Key / JWT_SECRET.");
 
         var issuer = configuration["Jwt:Issuer"] ?? "Palantica.Api";
         var audience = configuration["Jwt:Audience"] ?? "Palantica.Client";

@@ -33,3 +33,17 @@ npm-debug.log*
 Thumbs.db
 [Dd]esktop.ini
 .DS_Store
+
+# Secrets & Environment
+.env
+.env.*
+*.env
+!.env.example
+**/appsettings.Development.json
+**/appsettings.*.local.json
+**/appsettings.Local.json
+secrets.json
+*.pem
+*.key
+*.pfx
+*.p12

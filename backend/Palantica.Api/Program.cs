@@ -53,7 +53,7 @@ builder.Services.AddProblemDetails();
 // ==========================================
 var jwtSecret = builder.Configuration["Jwt:Key"]
                 ?? builder.Configuration["JWT_SECRET"]
-                ?? "***REMOVED***";
+                ?? throw new InvalidOperationException("Falta la configuración Jwt:Key / JWT_SECRET.");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "Palantica.Api";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "Palantica.Client";
 

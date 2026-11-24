@@ -23,10 +23,11 @@ public sealed class SupabaseRestClient
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
-        supabaseUrl = configuration["SUPABASE_URL"] ?? "https://detxepmluillmdknfanm.supabase.co";
-        apiKey = configuration["SUPABASE_SERVICE_ROLE_KEY"]
-                 ?? configuration["SUPABASE_ANON_KEY"]
-                 ?? "***REMOVED***";
+        supabaseUrl = configuration["SUPABASE_URL"]
+                      ?? throw new InvalidOperationException("Falta la configuración SUPABASE_URL.");
+        apiKey = configuration["SUPABASE_SECRET_KEY"]
+                 ?? configuration["SUPABASE_SERVICE_ROLE_KEY"]
+                 ?? throw new InvalidOperationException("Falta la configuración SUPABASE_SECRET_KEY.");
 
         httpClient = new HttpClient
         {
@@ -34,7 +35,12 @@ public sealed class SupabaseRestClient
         };
 
         httpClient.DefaultRequestHeaders.Add("apikey", apiKey);
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        // Las nuevas claves (sb_secret_/sb_publishable_) solo van en el header "apikey";
+        // el header Authorization solo se envía con claves legacy en formato JWT.
+        if (apiKey.StartsWith("eyJ", StringComparison.Ordinal))
+        {
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        }
     }
 
     public async Task<(IReadOnlyList<T> Items, int TotalCount)> GetListAsync<T>(

@@ -31,7 +31,8 @@ public sealed class NpgsqlConnectionFactory : IDbConnectionFactory
             var port = configuration["SUPABASE_DB_PORT"] ?? "5432";
             var db = configuration["SUPABASE_DB_NAME"] ?? "postgres";
             var user = configuration["SUPABASE_DB_USER"] ?? "postgres";
-            var pass = configuration["SUPABASE_DB_PASSWORD"] ?? "***REMOVED***";
+            var pass = configuration["SUPABASE_DB_PASSWORD"]
+                       ?? throw new InvalidOperationException("Falta la configuración de conexión a la base de datos.");
 
             rawString = $"Host={host};Port={port};Database={db};Username={user};Password={pass};SSL Mode=Require;Trust Server Certificate=true;";
         }
